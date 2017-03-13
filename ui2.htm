@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+	<meta name="viewport" content="width=1000, initial-scale=1" />
+	<title>UI2 - Blue Iris</title>
+	<script type="text/javascript">
+		// If messages stating "An unexpected error has occurred." become troublesome, you can disable it by deleting this script block!
+		// Also, be sure to report the problem so I can fix it!
+		window.onerror = function (msg, url, line, charIdx)
+		{
+			try
+			{
+				var ui2VersionStr = "unknown";
+				if (typeof ui2_version != "undefined")
+					ui2VersionStr = ui2_version;
+				url = url.replace(/\/\/.*?\//, '//censored_hostname/');
+				alert("An unexpected error has occurred in UI2 (version " + ui2VersionStr + ").\nA full refresh may solve the problem (CTRL + F5).\n\nIf you wish to report the error, please SCREENSHOT the browser now.\n\n" + msg + "\nURL: " + url + "\nLine: " + line + "\nChar: " + charIdx);
+			}
+			catch (ex)
+			{
+				alert(ex);
+			}
+		};
+	</script>
+	<!--<link href="ui2/toastr.min.css" rel="stylesheet" type="text/css">
+	<link href="ui2/wdContextMenu/contextmenu.css" rel="stylesheet" type="text/css">
+	<link href="ui2/zebra_datepicker/default.css" rel="stylesheet" type="text/css">-->
+	<link href="ui2/libs-ui2.css?v=0.17.2" rel="stylesheet" type="text/css">
+	<link href="ui2/ui2.css?v=0.17.2" rel="stylesheet" type="text/css">
+	<link href="ui2/ui2-local-overrides.css?v=0.17.2" rel="stylesheet" type="text/css">
+	<!--<script src="ui2/jquery-1.11.3.min.js" type="text/javascript"></script>
+	<script src="ui2/jquery.cookie.js" type="text/javascript"></script>
+	<script src="ui2/jquery.mousewheel.js" type="text/javascript"></script>
+	<script src="ui2/jquery.longpress.js" type="text/javascript"></script>
+	<script src="ui2/jquery.ui2modal.js" type="text/javascript"></script>
+	<script src="ui2/md5.js" type="text/javascript"></script>
+	<script src="ui2/toastr.min.js" type="text/javascript"></script>
+	<script src="ui2/wdContextMenu/jquery.contextmenu.js" type="text/javascript"></script>
+	<script src="ui2/zebra_datepicker/zebra_datepicker.js" type="text/javascript"></script>-->
+	<script src="ui2/libs-ui2.js?v=0.17.2" type="text/javascript"></script>
+	<script src="ui2/ui2-util.js?v=0.17.2" type="text/javascript"></script>
+	<script src="ui2/ui2.js?v=0.17.2" type="text/javascript"></script>
+	<script src="ui2/ui2-local-overrides.js?v=0.17.2" type="text/javascript"></script>
+	<script type="text/javascript">
+		var ui2_version = "0.17.2";
+		UI2_CustomEvent.AddListener("SettingsLoaded", function ()
+		{
+			$("#ui2_version_label").html(ui2_version);
+			if (passedTest_LocalStorage)
+			{
+				if (localStorage.ui2_lastLoadedVersion != ui2_version)
+				{
+					localStorage.ui2_lastLoadedVersion = ui2_version;
+					location.reload(true);
+				}
+			}
+		});
+	</script>
+	<!--[if lte IE 7]>
+		<style type="text/css">
+			.inlineblock
+			{
+				display: inline;
+				zoom: 1;
+			}
+		</style>
+	<![endif]-->
+</head>
+<body>
+	<div id="loadingmsgwrapper" style="position: absolute; width: 100%; height: 100%;
+		background-color: rgba(0,0,0,0.75); z-index: 999999;">
+		<div style="position: absolute; left: 50%; top: 50%;">
+			<div id="loadingmsg">
+				<img src="ui2/ajax-loader-big.gif" alt="Loading ..." /><br />
+				<div class="inlineblock loadinglabel">
+					Loading Web Content...
+				</div>
+				<div id="loadingWebContent" class="inlineblock loadingstatus">
+					BUSY
+				</div>
+				<br />
+				<div class="inlineblock loadinglabel">
+					Loading Server Status...
+				</div>
+				<div id="loadingServerStatus" class="inlineblock loadingstatus">
+					BUSY
+				</div>
+				<br />
+				<div class="inlineblock loadinglabel">
+					Checking Session Status...
+				</div>
+				<div id="loadingLogin" class="inlineblock loadingstatus">
+					BUSY
+				</div>
+				<br />
+				<div class="inlineblock loadinglabel">
+					Loading Camera List...
+				</div>
+				<div id="loadingCameraList" class="inlineblock loadingstatus">
+					BUSY
+				</div>
+				<br />
+			</div>
+		</div>
+	</div>
+	<div id="layouttop">
+		<div id="menubtnwrapper" class="inlineblock">
+			<img id="btnMenu" class="littleTopBtn" alt="Menu" src="ui2/menu48.png" title="Main Menu" onclick="PrepareMenuSelector(); LoadDropdownList('btnMenu', 'menuselector');" />
+		</div>
+		<div id="logo" class="inlineblock" onclick="PopulateServerlistSelector(); LoadDropdownList('logo', 'serverlistselector');" title="About UI2 / Server List">
+			<div id="system_name" class="inlineblock">%%SYSNAME%%</div>
+			<div id="fallback_logo" class="inlineblock" style="display: none"><img id="logoImg" src="ui2/logo.png" alt="" /><div id="logotext" class="inlineblock">UI2</div></div>
+		</div>
+		<img id="audio_icon" class="bigTopBtn" src="ui2/high96.png" alt="Audio" onclick="audioToggle()" style="display: none" title="Toggle Audio Playback" />
+		<div id="ptz_pt_wrapper" class="inlineblock" style="display: none">
+			<img class="ptzbtn_blank" src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt=" " />
+			<img class="ptzbtn" ptzcmd="2" src="ui2/up48.png" alt="^" />
+			<img class="ptzbtn_blank" src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt=" " />
+			<img class="ptzbtn" ptzcmd="0" src="ui2/left48.png" alt="<" />
+			<img class="ptzbtn" ptzcmd="3" src="ui2/down48.png" alt="v" />
+			<img class="ptzbtn" ptzcmd="1" src="ui2/right48.png" alt=">" />
+		</div>
+		<div id="ptz_z_wrapper" class="inlineblock" style="display: none">
+			<img class="ptzbtn" ptzcmd="5" src="ui2/zoom_in48.png" alt="+" title="Zoom In" />
+			<img class="ptzbtn" ptzcmd="6" src="ui2/zoom_out48.png" alt="-" title="Zoom Out" />
+		</div>
+		<div id="ptz_f_wrapper" class="inlineblock" style="display: none">
+			<img class="ptzbtn" ptzcmd="-1" src="ui2/focus_in48.png" alt="F+" title="Focus Near" />
+			<img class="ptzbtn" ptzcmd="-2" src="ui2/focus_out48.png" alt="F-" title="Focus Far" />
+		</div>
+		<div id="ptz_presets_1_wrapper" class="inlineblock" style="display: none">
+			<div class="inlineblock ptzpreset" presetnum="1"></div>
+			<div class="inlineblock ptzpreset" presetnum="2"></div>
+			<div class="inlineblock ptzpreset" presetnum="3"></div>
+			<div class="inlineblock ptzpreset" presetnum="4"></div>
+			<div class="inlineblock ptzpreset" presetnum="5"></div>
+			<div class="inlineblock ptzpreset" presetnum="6"></div>
+			<div class="inlineblock ptzpreset" presetnum="7"></div>
+			<div class="inlineblock ptzpreset" presetnum="8"></div>
+			<div class="inlineblock ptzpreset" presetnum="9"></div>
+			<div class="inlineblock ptzpreset" presetnum="10"></div>
+		</div>
+		<div id="ptz_presets_2_wrapper" class="inlineblock" style="display: none">
+			<div class="inlineblock ptzpreset" presetnum="11"></div>
+			<div class="inlineblock ptzpreset" presetnum="12"></div>
+			<div class="inlineblock ptzpreset" presetnum="13"></div>
+			<div class="inlineblock ptzpreset" presetnum="14"></div>
+			<div class="inlineblock ptzpreset" presetnum="15"></div>
+			<div class="inlineblock ptzpreset" presetnum="16"></div>
+			<div class="inlineblock ptzpreset" presetnum="17"></div>
+			<div class="inlineblock ptzpreset" presetnum="18"></div>
+			<div class="inlineblock ptzpreset" presetnum="19"></div>
+			<div class="inlineblock ptzpreset" presetnum="20"></div>
+		</div>
+		<div id="stoplight" class="inlineblock">
+			<img id="stoplightred" alt="R" src="ui2/RedLight96.png" style="display: none; height: 48px;" title="Blue Iris' stoplight state is RED" />
+			<img id="stoplightgreen" alt="G" src="ui2/GreenLight96.png" style="display: none; height: 48px;" title="Blue Iris' stoplight state is GREEN" />
+			<img id="stoplightyellow" alt="Y" src="ui2/YellowLight96.png" style="display: none; height: 48px;" title="Blue Iris' stoplight state is YELLOW" />
+		</div>
+		<div id="quality" class="inlineblock bigTopBtnWrapper" style="display: none;">
+			<img id="quality_high" class="bigTopBtn" alt="HQ" src="ui2/scenery_high96.png" style="display: none;" title="Image quality is high" />
+			<img id="quality_low" class="bigTopBtn red" alt="LQ" src="ui2/scenery_low96.png" style="display: none;" title="Image quality is low" />
+		</div>
+		<div id="cpumem" class="inlineblock topbarinfo">
+			CPU: <span id="cpuusage"></span>
+			<br />
+			MEM: <span id="memusage"></span>
+		</div>
+		<div id="schedule_lock_wrapper" class="inlineblock topbarinfo_notopoffset">
+			<div id="schedule_lock_button" class="schedule_lock"><img id="schedule_lock_overlay" src="ui2/refresh44x94.png" style="width:22px;height:47px" alt="hold" /></div>
+		</div>
+		<div id="profile_wrapper" class="inlineblock topbarinfo_nooffsets">
+			<div class="inlineblock profilebtn" profilenum="0" title="Inactive profile">~</div>
+			<div class="inlineblock profilebtn" profilenum="1" title="Profile 1">1</div>
+			<div class="inlineblock profilebtn" profilenum="2" title="Profile 2">2</div>
+			<div class="inlineblock profilebtn" profilenum="3" title="Profile 3">3</div>
+			<div class="inlineblock profilebtn" profilenum="4" title="Profile 4">4</div>
+			<div class="inlineblock profilebtn" profilenum="5" title="Profile 5">5</div>
+			<div class="inlineblock profilebtn" profilenum="6" title="Profile 6">6</div>
+			<div class="inlineblock profilebtn" profilenum="7" title="Profile 7">7</div>
+		</div>
+		<div id="schedule_wrapper" class="inlineblock topbarinfo">
+			<div class="heading">Schedule:</div>
+			<div id="selectedSchedule" class="inlineblock dropdown_header" onclick="PopulateScheduleSelector(); LoadDropdownList('selectedSchedule', 'scheduleselector');" title="Select a different &quot;global schedule&quot; preset, if you have configured more than one."></div>
+		</div>
+		<div id="diskinfo" class="inlineblock topbarinfo">
+		</div>
+		<div id="fpsCounter" class="inlineblock topbarinfo">
+		</div>
+		<div id="homegroup_wrapper" class="inlineblock topbarinfo">
+			<div class="heading">Current Camera:</div>
+			<div id="selectedCameraName" class="inlineblock dropdown_header" onclick="PopulateHomegroupSelector(); LoadDropdownList('selectedCameraName', 'homegroupselector');" title="Select a new &quot;home group&quot;"></div>
+		</div>
+		<div id="save_snapshot_wrapper" class="inlineblock bigTopBtnWrapper">
+			<a id="save_snapshot_btn" href="javascript:void(0)" onclick="saveSnapshot()" target="_blank">
+				<img class="bigTopBtn" alt="Save Snapshot" src="ui2/save_snapshot96.png" title="Download a frame to disk" />
+			</a>
+		</div>
+		<div id="open_hls_wrapper" class="inlineblock bigTopBtnWrapper">
+			<a id="open_hls_btn" href="javascript:void(0)" onclick="openHlsButtonClick()">
+				<img class="bigTopBtn" alt="Open HLS Stream" src="ui2/hls96.png" title="Open HLS Stream (H264, typically delayed about 10 seconds)" />
+			</a>
+		</div>
+		<div id="h264Toggler" class="inlineblock topbarinfo">
+			Streaming:<br/>
+			JPEG
+		</div>
+		<div id="playback_controls">
+			<div id="playback_seekbar" title="Seek Bar">
+				<div id="playback_seekbar_track">
+				</div>
+				<div id="playback_seekbar_handle">
+					<div id="playback_seekbar_handle_above">
+					</div>
+					<div id="playback_seekbar_handle_below">
+					</div>
+				</div>
+			</div>
+			<div id="playback_buttons">
+				<img class="playback_control_btn" id="playback_playpause" src="ui2/pause48.png" alt="P" title="Play/Pause" onclick="Playback_PlayPause()" style="margin-left: 5px;" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<img class="playback_control_btn" id="playback_reverse" src="ui2/fastforward48.png" alt="R" title="Forward/Reverse Playback" onclick="Playback_Reverse()" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<img class="playback_control_btn" id="playback_loop" src="ui2/loop48.png" alt="L" title="Toggle Looping" onclick="Playback_Loop_Toggle()" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<img class="playback_control_btn" id="playback_autoplay" src="ui2/squares48.png" alt="L" title="Toggle automatic playback of next clip" onclick="Playback_AutoPlay_Toggle()" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<img class="playback_control_btn" src="ui2/slow48.png" alt="S" title="Slow Down" onclick="Playback_SlowDown()" />
+				<img class="playback_control_btn" src="ui2/fast48.png" alt="F" title="Speed Up" onclick="Playback_SpeedUp()" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<div class="playback_textarea inlineblock">
+					<div id="playback_position" class="inlineblock" title="Playback position"></div>
+					<div id="playback_speed" class="inlineblock" title="Playback speed">1x</div>
+					<div id="playback_remaining" class="inlineblock" title="Time remaining"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="layoutleft">
+		<div id="clipsheading">
+			<span id="clipsheading_label">Clips</span>
+			<img id="btn_clipCalendar" class="calendarButton" src="ui2/calendar32.png" alt="Date" title="Select a date" onclick="ClipCalendarClicked()" />
+			<input type="text" id="datePickerDate1" style="display:none;" />
+			<input type="text" id="datePickerDate2" style="display:none;" />
+			<span id="lblClipDate" title="Click to clear date filter"></span>
+		</div>
+		<div id="clipstools">
+			<img id="btn_alerts" class="selected" src="ui2/exclamation40.png" alt="[!]" title="Load Fresh Alerts" onclick="LoadClips('alertlist', 'preserve_current_clipgroup')" />
+			<img id="btn_clips" src="ui2/movie40.png" alt="[C]" title="Load Fresh Clips" onclick="LoadClips('cliplist', 'preserve_current_clipgroup')" />
+			<div class="inlineblock divider">
+			</div>
+			<div id="clipsCameraName" class="inlineblock dropdown_header" onclick="PopulateClipsCameraSelector(); LoadDropdownList('clipsCameraName', 'clipscameraselector');"></div>
+			<input type="button" id="btnGoLive" class="button" value="Go Live" onclick="goLive()" style="display: none;" />
+			<img id="btn_autoLoadClipList" src="ui2/surveillance40.png" alt="[S]" title="Automatically list clips from current live camera" onclick="ToggleAutoLoadClipList()" />
+			<div id="clipstools_clearboth"></div>
+		</div>
+		<div id="clipsbody">
+		</div>
+	</div>
+	<div id="layoutbody">
+		<img crossOrigin="Anonymous" id="camimg" src="" alt="" />
+		<canvas id="camimg_canvas" style="display:none;">Your browser does not support HTML5 canvas.</canvas> <!-- This canvas is shown to the user when the canvas option is enabled. -->
+		<!--<canvas id="camimg_jpegdiff_canvas" style="display:none;"></canvas>--><!-- This canvas holds the latest unfiltered image for my jpegdiff algorithm. -->
+		<!--<canvas id="camimg_jpegdiff_diffframe_canvas" style="display:none;"></canvas>--><!-- This canvas holds the latest diff frame for my jpegdiff algorithm. -->
+	</div>
+	<div id="layoutdivider">
+	</div>
+	<div id="scheduleselector" class="dropdown_list">
+	</div>
+	<div id="homegroupselector" class="dropdown_list">
+	</div>
+	<div id="clipscameraselector" class="dropdown_list">
+	</div>
+	<div id="serverlistselector" class="dropdown_list open_on_right largertext">
+	</div>
+	<div id="menuselector" class="dropdown_list open_on_left largertext bluetext">
+		<div id="btnOptions" onclick="openOptionsDialog()" class="golden separatorbelow"><img class="icon24" src="ui2/settings_gold48.png" /> UI2 Settings</div>
+		<div id="btnSystemLog" onclick="GetLog()"><img class="icon24" src="ui2/log48.png" /> System Log</div>
+		<div id="btnSystemConfig" onclick="GetSysConfig()"><img class="icon24" src="ui2/sysconfig48.png" /> System Configuration</div>
+		<div id="btnCameraList" onclick="ShowCameraList()"><img class="icon24" src="ui2/list48.png" /> Full Camera List</div>
+		<div onclick="openAboutDialog()" class="golden separatorabove"><img class="icon24" src="ui2/about_gold48.png" /> About UI2</div>
+		<div onclick="logout()" class="separatorabove"><img class="icon24" src="ui2/door48.png" /> Log Out</div>
+	</div>
+	<div id="preloadcontainer" style="display: none">
+		<img src="ui2/LoadingSmall.png" />
+		<img src="ui2/ajax-loader-small.gif" />
+		<img src="ui2/nothumb.jpg" />
+		<img src="ui2/ajax-loader-clips.gif" />
+		<img src="ui2/high96.png" />
+		<img src="ui2/mute96.png" />
+		<img src="ui2/hold44x94.png" />
+		<img src="ui2/clock44x94.png" />
+		<img src="ui2/play48.png" />
+		<img src="ui2/rewind48.png" />
+		<img src="ui2/movie32.png" />
+		<img src="ui2/window32.png" />
+	</div>
+	<div id="zoomhint" style="display: none">
+	</div>
+	<div id="loginDialog" style="display: none">
+		<div class="title">Administrator Login</div>
+		<div style="margin-top: 5px;">An administrator session is required to access this feature.  Please log in, then try your action again:</div>
+		<div class="section">User: <input type=" text" id="txtUserName" placeholder="Username" /></div>
+		<div style="margin-top: 5px;">Pass: <input type="password" id="txtPassword" placeholder="Password" /></div>
+		<div class="section"><input type="checkbox" id="cbRememberMe" onchange="AdminLoginRememberMeChanged()" /><label for="cbRememberMe">Remember Me</label></div>
+		<div class="section"><input type="button" id="btnLogin" value="Log in" onclick="DoAdministratorLogin()" /></div>
+	</div>
+	<div id="aboutDialog" style="display: none">
+		<div class="title">About UI2</div>
+		<div class="section">Version <span id="ui2_version_label"></span> by <a href="http://www.ipcamtalk.com/member.php?28-bp2008">bp2008</a></div>
+		<div class="section">UI2 is a third-party web interface for <a href="http://blueirissoftware.com/">Blue Iris</a></div>
+		<div class="section">
+			UI2 is designed for use with:
+		</div>
+		<div style="margin-top:10px;">
+			<a href="http://www.google.com/chrome"><img src="ui2/chrome48.png" alt="" style="vertical-align: middle;width:24px;height:24px;margin-right:10px;" />Google Chrome</a>
+		</div>
+		<div style="margin-top:10px;">
+			<a href="https://www.mozilla.org/en-US/firefox/new/"><img src="ui2/firefox48.png" alt="" style="vertical-align: middle;width:24px;height:24px;margin-right:10px;" />Mozilla Firefox</a>
+		</div>
+		<div style="margin-top:10px;">
+			Other browsers, including mobile versions of those listed above, may or may not provide full functionality.
+		</div>
+		<div style="margin-top: 10px">
+			<a href="https://www.paypal.me/bp2008"><img src="ui2/pp38.png" alt="paypal.me" style="height:19px;padding:2px;background-color:white;border:2px solid #377ec0;position:relative;top: 8px;" /></a>
+			Donations are accepted, but never required.
+		</div>
+		<div class="section" style="margin-bottom: 5px;">Credits:</div>
+		<ul>
+			<li>
+				<div>
+					Icons made by <a href="http://www.freepik.com" title="Freepik">Freepik</a>,
+					<a href="http://www.flaticon.com/authors/daniel-bruce" title="Daniel Bruce">Daniel Bruce</a>,
+					<a href="http://www.flaticon.com/authors/elegant-themes" title="Elegant Themes">Elegant Themes</a>,
+					<a href="http://www.flaticon.com/authors/picol" title="Picol">Picol</a>,
+					<a href="http://www.flaticon.com/authors/icomoon" title="Icomoon">Icomoon</a>,
+					<a href="http://www.flaticon.com/authors/dave-gandy" title="Dave Gandy">Dave Gandy</a>,
+					<a href="http://www.flaticon.com/authors/OCHA" title="OCHA">OCHA</a>,
+					<a href="http://www.flaticon.com/authors/victor-erixon" title="Victor Erixon">Victor Erixon</a>,
+					<a href="http://www.flaticon.com/authors/google" title="Google">Google</a>,
+					<a href="http://www.flaticon.com/authors/egor-rumyantsev" title="Egor Rumyantsev">Egor Rumyantsev</a>,
+					<a href="http://www.flaticon.com/authors/anton-saputro" title="Anton Saputro">Anton Saputro</a>
+					from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>
+					is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a>
+				</div>
+			</li>
+			<li>
+				<div>The clip calendar uses <a href="http://stefangabos.ro/jquery/zebra-datepicker/">Zebra_Datepicker</a>, licensed under the <a href="ui2/zebra_datepicker/license.txt">GNU LESSER GENERAL PUBLIC LICENSE</a>.</div>
+			</li>
+			<li>
+				<div>H264 (near-)live video playback uses  <a href="https://github.com/clappr/clappr">Clappr</a>, and <a href="ui2/clappr/LICENSE.txt">here is its license</a>.</div>
+			</li>
+		</ul>
+	</div>
+	<div id="datePickerDialog" class="inlineblock" style="display: none">
+		<div style="margin-bottom:15px;">Filter by start and end dates below:</div>
+		<div class="inlineblock">
+			<div style="text-align:center;">Start Date</div>
+			<div id="datePicker1Container" class="inlineblock"></div>
+		</div>
+		<div class="inlineblock">
+			<div style="text-align:center;">End Date</div>
+			<div id="datePicker2Container" class="inlineblock"></div>
+		</div>
+	</div>
+	<div id="audioWrapper" style="display: none">
+		<audio id="audioobj" autoplay="autoplay" preload="none">
+			<source id="audiosourceobj" src="" type="audio/x-wav"></source>
+		</audio>
+	</div>
+</body>
+</html>
