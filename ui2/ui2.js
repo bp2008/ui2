@@ -3824,7 +3824,7 @@ function ApplyLatestAPISessionIfNecessary()
 		return;
 	if ($.cookie("session") != latestAPISession)
 	{
-		$.cookie("session", latestAPISession);
+		$.cookie("session", latestAPISession, { path: "/" });
 		KickstartMjpegStream();
 	}
 }

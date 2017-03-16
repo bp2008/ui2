@@ -290,7 +290,7 @@ function ExecJSON(args, callbackSuccess, callbackFail, synchronous)
 		success: function (data)
 		{
 			if (isLogin)
-				$.cookie("session", oldSession);
+				$.cookie("session", oldSession, { path: "/" });
 			else if (!isUsingRemoteServer && typeof data.session != "undefined" && data.session != $.cookie("session"))
 				$.cookie("session", data.session, { path: "/" });
 			if (callbackSuccess)
@@ -3348,14 +3348,14 @@ function logout()
 	}
 	else
 	{
-		$.get('logout.htm')
+		$.get(remoteBaseURL + 'logout.htm')
 			.done(function ()
 			{
-				location.href = "login.htm?autologin=0&page=" + encodeURIComponent(location.pathname);
+				location.href = remoteBaseURL + "login.htm?autologin=0&page=" + encodeURIComponent(location.pathname);
 			})
 			.fail(function ()
 			{
-				location.href = 'logout.htm';
+				location.href = remoteBaseURL + 'logout.htm';
 			});
 	}
 }

@@ -141,7 +141,7 @@
 		}
 		function LeaveLoginPage()
 		{
-			$.cookie("session", existingSession);
+			$.cookie("session", existingSession, { path: "/" });
 			var page = UrlParameters.Get("page");
 			if (page == "")
 				page = "/";
