@@ -48,7 +48,12 @@
 			if (GetPersistedValue("loginautomatically") == "1")
 			{
 				$("#cbLoginAutomatically").attr('checked', 'checked');
-				if (UrlParameters.Get("autologin") != "0")
+				if (UrlParameters.Get("autologin") == "0")
+				{
+					SetPersistedValue("override_disable_auto_login_once", "1");
+					location.href = location.href.replace(/autologin=0/gi, '');
+				}
+				if (GetPersistedValue("override_disable_auto_login_once") != "1")
 				{
 					$("#txtUn").val(Base64.decode(GetPersistedValue("un64")));
 					$("#txtPw").val(Base64.decode(GetPersistedValue("pw64")));
@@ -71,6 +76,7 @@
 						}
 					}
 				}
+				SetPersistedValue("override_disable_auto_login_once", "0");
 			}
 			else
 				$("#cbLoginAutomatically").removeAttr('checked');
