@@ -4,3 +4,5 @@
 
 /.vs
 /ui2.sln
+/ui2/ui2-local-overrides.js
+/ui2/ui2-local-overrides.css
