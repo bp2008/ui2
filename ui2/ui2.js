@@ -3954,6 +3954,7 @@ function SessionLogin(user, pass)
 				loginLoaded = true;
 				SetLoadedStatus("#loadingLogin");
 				HandleSuccessfulLogin(user, false);
+				setTimeout(function () { logoutOldSession(oldSession); }, 1000);
 			}
 		}, function ()
 			{

@@ -3349,16 +3349,22 @@ function logout()
 	}
 	else
 	{
-		$.get(remoteBaseURL + 'logout.htm')
-			.done(function ()
-			{
-				location.href = remoteBaseURL + "login.htm?autologin=0&page=" + encodeURIComponent(location.pathname);
-			})
-			.fail(function ()
+		ExecJSON({ cmd: "logout" }, function ()
+		{
+			location.href = remoteBaseURL + "login.htm?autologin=0&page=" + encodeURIComponent(location.pathname);
+		}, function ()
 			{
 				location.href = remoteBaseURL + 'logout.htm';
 			});
 	}
+}
+function logoutOldSession(oldSession)
+{
+	// When running multiple instances of the UI in the same browser, this causes one instance to log out the session belonging to another instance.
+	// As long as cookies are sharing sessions between multiple browser tabs, this code should not be enabled.
+	// An alternative would be to have Ken include the user name in the session data, so we could avoid creating unnecessary new sessions in the first place.  Then maybe it would be safe to turn this feature on.
+	//if (oldSession != null && oldSession != $.cookie("session"))
+	//	ExecJSON({ cmd: "logout", session: oldSession });
 }
 function makeUnselectable($target)
 {
