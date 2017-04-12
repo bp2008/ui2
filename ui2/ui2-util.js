@@ -1956,15 +1956,15 @@ function onui2_thumbnailLoadingThreadsChanged()
 {
 	RestartImageQueue();
 }
-function onui2_adminremembermeChanged()
+function onbi_rememberMeChanged()
 {
-	if (settings.ui2_adminrememberme == "1")
+	if (settings.bi_rememberMe == "1")
 	{
-		settings.ui2_adminusername = SimpleTextGibberize($("#txtUserName").val());
-		settings.ui2_adminpassword = SimpleTextGibberize($("#txtPassword").val());
+		settings.bi_username = Base64.encode($("#txtUserName").val());
+		settings.bi_password = Base64.encode($("#txtPassword").val());
 	}
 	else
-		settings.ui2_adminusername = settings.ui2_adminpassword = "";
+		settings.bi_username = settings.bi_password = "";
 }
 function onui2_showQualityButtonChanged()
 {
@@ -2073,10 +2073,10 @@ function openAboutDialog()
 var loginModal = null;
 function openLoginDialog()
 {
-	if (settings.ui2_adminrememberme == "1")
+	if (settings.bi_rememberMe == "1")
 	{
-		$("#txtUserName").val(SimpleTextGibberize(settings.ui2_adminusername));
-		$("#txtPassword").val(SimpleTextGibberize(settings.ui2_adminpassword));
+		$("#txtUserName").val(Base64.decode(settings.bi_username));
+		$("#txtPassword").val(Base64.decode(settings.bi_password));
 		$("#cbRememberMe").prop("checked", true);
 	}
 	else
@@ -2209,7 +2209,7 @@ function ShowServerSelectionDialog(onClose)
 			+ '<td><input type="checkbox" class="externalServerSelector" myIndex="' + i + '" value="" /></td>'
 			+ '<td>' + nameCell + '</td>'
 			+ '<td>' + server.host + '</td>'
-			+ '<td>' + SimpleTextGibberize(server.user) + '</td>'
+			+ '<td>' + Base64.decode(server.user) + '</td>'
 			+ '<td>' + linkCell + '</td>'
 			+ '<td><input type="button" class="button" value="EDIT" onclick="EditExternalServer(' + i + ')" /></td>'
 			+ '</tr>');
@@ -2280,11 +2280,11 @@ function EditExternalServer(i)
 			+ ' <span style="font-style:italic;">Examples: "myserver.example.com:81" or "192.168.0.2"</span>'
 			+ '</div>'
 			+ '<div>'
-			+ 'User Name:<br/><input varname="user" type="text" value="' + SimpleTextGibberize(server.user) + '" onchange="EditExternalServerInputChanged(this, ' + i + ')" />'
+			+ 'User Name:<br/><input varname="user" type="text" value="' + Base64.decode(server.user) + '" onchange="EditExternalServerInputChanged(this, ' + i + ')" />'
 			+ ' <span style="font-style:italic;">Leave blank if unneeded</span>'
 			+ '</div>'
 			+ '<div>'
-			+ 'Password:<br/><input varname="pass" type="password" value="' + SimpleTextGibberize(server.pass) + '" onchange="EditExternalServerInputChanged(this, ' + i + ')" />'
+			+ 'Password:<br/><input varname="pass" type="password" value="' + Base64.decode(server.pass) + '" onchange="EditExternalServerInputChanged(this, ' + i + ')" />'
 			+ ' <span style="font-style:italic;">Leave blank if unneeded</span>'
 			+ '</div>'
 			+ '<div>'
@@ -2311,8 +2311,8 @@ function EditExternalServer(i)
 						return true;
 					}
 					server.host = $("#editExternalServerDialog").find('input[type="text"][varname="host"]').val();
-					server.user = SimpleTextGibberize($("#editExternalServerDialog").find('input[type="text"][varname="user"]').val());
-					server.pass = SimpleTextGibberize($("#editExternalServerDialog").find('input[type="password"][varname="pass"]').val());
+					server.user = Base64.encode($("#editExternalServerDialog").find('input[type="text"][varname="user"]').val());
+					server.pass = Base64.encode($("#editExternalServerDialog").find('input[type="password"][varname="pass"]').val());
 					SaveServerList();
 					ReloadServerSelectionDialog();
 				}
@@ -3313,10 +3313,10 @@ function PersistImageFromUrl(settingsKey, url, onSuccess, onFail)
 // Base64 /////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 var Base64 = {
-	_keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", encode: function (b) { var d = "", c, a, f, g, h, e, k = 0; for (b = Base64._utf8_encode(b); k < b.length;) c = b.charCodeAt(k++), a = b.charCodeAt(k++), f = b.charCodeAt(k++), g = c >> 2, c = (c & 3) << 4 | a >> 4, h = (a & 15) << 2 | f >> 6, e = f & 63, isNaN(a) ? h = e = 64 : isNaN(f) && (e = 64), d = d + this._keyStr.charAt(g) + this._keyStr.charAt(c) + this._keyStr.charAt(h) + this._keyStr.charAt(e); return d }, decode: function (b)
+	_keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", encode: function (b) { var d = "", c, a, f, g, h, e, k = 0; for (b = Base64._utf8_encode(b); k < b.length;)c = b.charCodeAt(k++), a = b.charCodeAt(k++), f = b.charCodeAt(k++), g = c >> 2, c = (c & 3) << 4 | a >> 4, h = (a & 15) << 2 | f >> 6, e = f & 63, isNaN(a) ? h = e = 64 : isNaN(f) && (e = 64), d = d + this._keyStr.charAt(g) + this._keyStr.charAt(c) + this._keyStr.charAt(h) + this._keyStr.charAt(e); return d }, decode: function (b)
 	{
 		var d = "", c, a, f, g, h, e = 0; for (b = b.replace(/[^A-Za-z0-9\+\/\=]/g, ""); e <
-			b.length;) c = this._keyStr.indexOf(b.charAt(e++)), a = this._keyStr.indexOf(b.charAt(e++)), g = this._keyStr.indexOf(b.charAt(e++)), h = this._keyStr.indexOf(b.charAt(e++)), c = c << 2 | a >> 4, a = (a & 15) << 4 | g >> 2, f = (g & 3) << 6 | h, d += String.fromCharCode(c), 64 != g && (d += String.fromCharCode(a)), 64 != h && (d += String.fromCharCode(f)); return d = Base64._utf8_decode(d)
+			b.length;)c = this._keyStr.indexOf(b.charAt(e++)), a = this._keyStr.indexOf(b.charAt(e++)), g = this._keyStr.indexOf(b.charAt(e++)), h = this._keyStr.indexOf(b.charAt(e++)), c = c << 2 | a >> 4, a = (a & 15) << 4 | g >> 2, f = (g & 3) << 6 | h, d += String.fromCharCode(c), 64 != g && (d += String.fromCharCode(a)), 64 != h && (d += String.fromCharCode(f)); return Base64._utf8_decode(d)
 	}, _utf8_encode: function (b)
 	{
 		b = b.replace(/\r\n/g, "\n"); for (var d = "", c = 0; c < b.length; c++)
@@ -3324,7 +3324,7 @@ var Base64 = {
 			var a = b.charCodeAt(c); 128 > a ? d += String.fromCharCode(a) : (127 < a && 2048 > a ? d += String.fromCharCode(a >>
 				6 | 192) : (d += String.fromCharCode(a >> 12 | 224), d += String.fromCharCode(a >> 6 & 63 | 128)), d += String.fromCharCode(a & 63 | 128))
 		} return d
-	}, _utf8_decode: function (b) { var d = "", c = 0, a; for (c1 = c2 = 0; c < b.length;) a = b.charCodeAt(c), 128 > a ? (d += String.fromCharCode(a), c++) : 191 < a && 224 > a ? (c2 = b.charCodeAt(c + 1), d += String.fromCharCode((a & 31) << 6 | c2 & 63), c += 2) : (c2 = b.charCodeAt(c + 1), c3 = b.charCodeAt(c + 2), d += String.fromCharCode((a & 15) << 12 | (c2 & 63) << 6 | c3 & 63), c += 3); return d }
+	}, _utf8_decode: function (b) { var d = "", c = 0, a; for (c1 = c2 = 0; c < b.length;)a = b.charCodeAt(c), 128 > a ? (d += String.fromCharCode(a), c++) : 191 < a && 224 > a ? (c2 = b.charCodeAt(c + 1), d += String.fromCharCode((a & 31) << 6 | c2 & 63), c += 2) : (c2 = b.charCodeAt(c + 1), c3 = b.charCodeAt(c + 2), d += String.fromCharCode((a & 15) << 12 | (c2 & 63) << 6 | c3 & 63), c += 3); return d }
 };
 ///////////////////////////////////////////////////////////////
 // Misc ///////////////////////////////////////////////////////
@@ -3448,12 +3448,17 @@ String.prototype.endsWith = function (suffix)
 };
 function SimpleTextGibberize(plainGibberish)
 {
-	var sbuilder = "";
-	for (var i = 0; i < plainGibberish.length; i++)
+	if (plainGibberish)
 	{
-		sbuilder += String.fromCharCode(((plainGibberish.charCodeAt(i) % 100) * 100) + (plainGibberish.charCodeAt(i) / 100));
+		var sbuilder = "";
+		for (var i = 0; i < plainGibberish.length; i++)
+		{
+			sbuilder += String.fromCharCode(((plainGibberish.charCodeAt(i) % 100) * 100) + (plainGibberish.charCodeAt(i) / 100));
+		}
+		return sbuilder;
 	}
-	return sbuilder;
+	else
+		return "";
 }
 function msToTime(s)
 {

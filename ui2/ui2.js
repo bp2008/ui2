@@ -410,20 +410,24 @@ var defaultSettings =
 			, value: "0"
 		}
 		, {
-			key: "ui2_adminusername"
+			key: "ui2_storedLoginConverted"
 			, value: ""
 		}
 		, {
-			key: "ui2_adminpassword"
+			key: "bi_username"
 			, value: ""
 		}
 		, {
-			key: "ui2_adminrememberme"
+			key: "bi_password"
+			, value: ""
+		}
+		, {
+			key: "bi_rememberMe"
 			, value: "0"
-			, preLabel: "Remember Me"
+			, preLabel: "Log in automatically"
 			, inputType: "checkbox"
-			, hint: "If checked, UI2 will remember your Administrator login credentials so you can more easily use features that require a Blue Iris administrator account."
-			, onchange: onui2_adminremembermeChanged
+			, hint: "If checked, your login credentials will be remembered and you will be logged in automatically."
+			, onchange: onbi_rememberMeChanged
 			, category: "Misc"
 		}
 		, {
@@ -1507,13 +1511,45 @@ $(function ()
 	// This makes it impossible to text-select or drag certain UI elements.
 	makeUnselectable($("#layouttop, #layoutleft, #layoutdivider, #layoutbody"));
 
-	if (settings.ui2_adminrememberme == "1")
+	// Convert stored login settings from old format to new format shared by other pages
+	if (settings.ui2_storedLoginConverted != "1")
 	{
-		SessionLogin(SimpleTextGibberize(settings.ui2_adminusername), SimpleTextGibberize(settings.ui2_adminpassword));
+		settings.ui2_storedLoginConverted = "1";
+		if (settings.ui2_adminrememberme == "1")
+		{
+			settings.bi_rememberMe = "1";
+			settings.bi_username = Base64.encode(SimpleTextGibberize(settings.ui2_adminusername));
+			settings.bi_password = Base64.encode(SimpleTextGibberize(settings.ui2_adminpassword));
+		}
+		else
+		{
+			settings.bi_rememberMe = "0";
+			settings.bi_username = "";
+			settings.bi_password = "";
+		}
+
+		settings.ui2_adminrememberme = "";
+		settings.ui2_adminusername = "";
+		settings.ui2_adminpassword = "";
+
+		// Convert all saved servers
+		var serverList = GetServerList();
+		for (var i = 0; i < serverList.length; i++)
+		{
+			var server = serverList[i];
+			server.user = Base64.encode(SimpleTextGibberize(server.user));
+			server.pass = Base64.encode(SimpleTextGibberize(server.pass));
+		}
+		SaveServerList();
+	}
+	// Use stored login
+	if (settings.bi_rememberMe == "1")
+	{
+		SessionLogin(Base64.decode(settings.bi_username), Base64.decode(settings.bi_password));
 		$("#cbRememberMe").prop("checked", true);
 	}
 	else
-		SessionLogin(SimpleTextGibberize(remoteServerUser), SimpleTextGibberize(remoteServerPass));
+		SessionLogin(Base64.decode(remoteServerUser), Base64.decode(remoteServerPass));
 
 	LoadContextMenus();
 	EnableDraggableDivider();
@@ -3831,21 +3867,36 @@ function AdminLoginRememberMeChanged()
 {
 	if ($("#cbRememberMe").is(":checked"))
 	{
-		settings.ui2_adminrememberme = "1";
-		settings.ui2_adminusername = SimpleTextGibberize($("#txtUserName").val());
-		settings.ui2_adminpassword = SimpleTextGibberize($("#txtPassword").val());
+		settings.bi_rememberMe = "1";
+		settings.bi_username = Base64.encode($("#txtUserName").val());
+		settings.bi_password = Base64.encode($("#txtPassword").val());
 	}
 	else
 	{
-		settings.ui2_adminrememberme = "0";
-		settings.ui2_adminusername = "";
-		settings.ui2_adminpassword = "";
+		settings.bi_rememberMe = "0";
+		settings.bi_username = "";
+		settings.bi_password = "";
 	}
 }
 function DoAdministratorLogin()
 {
 	AdminLoginRememberMeChanged();
 	SessionLogin($("#txtUserName").val(), $("#txtPassword").val());
+}
+function AdminLoginPasswordKeypress(ele, e)
+{
+	var keycode;
+	if (window.event) keycode = window.event.keyCode;
+	else if (typeof e != "undefined" && e) keycode = e.which;
+	else return true;
+
+	if (keycode == 13)
+	{
+		DoAdministratorLogin();
+		return false;
+	}
+	else
+		return true;
 }
 function SessionLogin(user, pass)
 {
@@ -3885,8 +3936,9 @@ function SessionLogin(user, pass)
 			lastLoginResponse = response;
 			if (typeof response.result != "undefined" && response.result == "fail")
 			{
+				var reason = response.data && response.data.reason ? " " + response.data.reason : "";
 				if (isUsingRemoteServer || isLoggingInWithCredentials)
-					showErrorToast('Failed to log in.', 3000);
+					showErrorToast('Failed to log in.' + reason, 3000);
 				if (isUsingRemoteServer)
 					HandleRemoteServerFailedToLogin();
 				else

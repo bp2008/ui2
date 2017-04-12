@@ -302,8 +302,8 @@
 		<div class="title">Administrator Login</div>
 		<div style="margin-top: 5px;">An administrator session is required to access this feature.  Please log in, then try your action again:</div>
 		<div class="section">User: <input type=" text" id="txtUserName" placeholder="Username" /></div>
-		<div style="margin-top: 5px;">Pass: <input type="password" id="txtPassword" placeholder="Password" /></div>
-		<div class="section"><input type="checkbox" id="cbRememberMe" onchange="AdminLoginRememberMeChanged()" /><label for="cbRememberMe">Remember Me</label></div>
+		<div style="margin-top: 5px;">Pass: <input type="password" id="txtPassword" placeholder="Password" onkeypress="return AdminLoginPasswordKeypress(this,event)" /></div>
+		<div class="section"><input type="checkbox" id="cbRememberMe" onchange="AdminLoginRememberMeChanged()" /><label for="cbRememberMe">Log in automatically</label></div>
 		<div class="section"><input type="button" id="btnLogin" value="Log in" onclick="DoAdministratorLogin()" /></div>
 	</div>
 	<div id="aboutDialog" style="display: none">
