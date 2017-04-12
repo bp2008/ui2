@@ -1515,9 +1515,6 @@ $(function ()
 	else
 		SessionLogin(SimpleTextGibberize(remoteServerUser), SimpleTextGibberize(remoteServerPass));
 
-	if (!isUsingRemoteServer)
-		LoadStatus();
-
 	LoadContextMenus();
 	EnableDraggableDivider();
 	EnablePTZButtons();
@@ -1971,6 +1968,8 @@ function LoadStatus(profileNum, stoplightState, schedule)
 		var nextStatusUpdateDelay = settings.ui2_timeBetweenStatusUpdates;
 		if (typeof args.schedule != "undefined")
 			nextStatusUpdateDelay = 1000; // We just updated the schedule. Refresh again soon in case of profile change.
+		if (statusUpdateTimeout != null)
+			clearTimeout(statusUpdateTimeout);
 		statusUpdateTimeout = setTimeout(function ()
 		{
 			LoadStatus();
@@ -3865,6 +3864,15 @@ function SessionLogin(user, pass)
 		args.session = oldSession;
 	ExecJSON(args, function (response)
 	{
+		lastLoginResponse = response;
+		isAdministratorSession = false;
+		if (response.result && response.result == "success" && !isLoggingInWithCredentials)
+		{
+			loginLoaded = true;
+			SetLoadedStatus("#loadingLogin");
+			HandleSuccessfulLogin("", true);
+			return;
+		}
 		var newSession = typeof response.session == "undefined" ? oldSession : response.session;
 
 		if (isUsingRemoteServer)
@@ -3875,7 +3883,6 @@ function SessionLogin(user, pass)
 		ExecJSON({ cmd: "login", response: myResponse, session: newSession }, function (response)
 		{
 			lastLoginResponse = response;
-			isAdministratorSession = false;
 			if (typeof response.result != "undefined" && response.result == "fail")
 			{
 				if (isUsingRemoteServer || isLoggingInWithCredentials)
@@ -3886,48 +3893,16 @@ function SessionLogin(user, pass)
 				{
 					loginLoaded = true;
 					SetLoadedStatus("#loadingLogin");
+					LoadStatus();
+					LoadCameraList();
 				}
 			}
 			else
 			{
 				loginLoaded = true;
 				SetLoadedStatus("#loadingLogin");
-				$("#system_name").text(response.data["system name"]);
-				onui2_showSystemNameChanged();
-				if (!isUsingRemoteServer)
-					SaveLocalServerName(response.data["system name"]);
-				latestAPISession = response.session;
-				ApplyLatestAPISessionIfNecessary();
-				if (response.data.admin)
-				{
-					isAdministratorSession = true;
-					if (user == "")
-						user = "administrator";
-					showSuccessToast("Logged in as " + htmlEncode(user) + "<br/>(Administrator)<br/><br/>Server \"" + response.data["system name"] + "\"<br/>Blue Iris version " + response.data.version);
-					closeLoginDialog();
-				}
-				else
-				{
-					if (user == "")
-						user = "user";
-					showInfoToast("Logged in as " + htmlEncode(user) + "<br/>(Limited User)<br/><br/>Server \"" + response.data["system name"] + "\"<br/>Blue Iris version " + response.data.version);
-				}
-				try
-				{
-					if (typeof response.data.profiles == "object" && response.data.profiles.length == 8)
-					{
-						currentProfileNames = response.data.profiles;
-						UpdateProfileStatus();
-					}
-				}
-				catch (exception)
-				{
-					showWarningToast("Unable to read profile name data from login response");
-				}
+				HandleSuccessfulLogin(user, false);
 			}
-			if (isUsingRemoteServer)
-				LoadStatus();
-			LoadCameraList();
 		}, function ()
 			{
 				showErrorToast('Unable to contact Blue Iris server.', 3000);
@@ -3952,6 +3927,45 @@ function SessionLogin(user, pass)
 				LoadCameraList();
 			}
 		});
+}
+function HandleSuccessfulLogin(user, wasJustCheckingSessionStatus)
+{
+	$("#system_name").text(lastLoginResponse.data["system name"]);
+	onui2_showSystemNameChanged();
+	if (!isUsingRemoteServer)
+		SaveLocalServerName(lastLoginResponse.data["system name"]);
+	latestAPISession = lastLoginResponse.session;
+	ApplyLatestAPISessionIfNecessary();
+	if (lastLoginResponse.data.admin)
+	{
+		isAdministratorSession = true;
+		if (user == "")
+			user = "administrator";
+		showSuccessToast("Logged in as " + htmlEncode(user) + "<br/>(Administrator)<br/><br/>Server \"" + lastLoginResponse.data["system name"] + "\"<br/>Blue Iris version " + lastLoginResponse.data.version);
+		closeLoginDialog();
+	}
+	else
+	{
+		isAdministratorSession = false;
+		if (user == "")
+			user = "user";
+		if (!wasJustCheckingSessionStatus)
+			showInfoToast("Logged in as " + htmlEncode(user) + "<br/>(Limited User)<br/><br/>Server \"" + lastLoginResponse.data["system name"] + "\"<br/>Blue Iris version " + lastLoginResponse.data.version);
+	}
+	try
+	{
+		if (typeof lastLoginResponse.data.profiles == "object" && lastLoginResponse.data.profiles.length == 8)
+		{
+			currentProfileNames = lastLoginResponse.data.profiles;
+			UpdateProfileStatus();
+		}
+	}
+	catch (exception)
+	{
+		showWarningToast("Unable to read profile name data from login response");
+	}
+	LoadStatus();
+	LoadCameraList();
 }
 function HandleRemoteServerFailedToLogin()
 {

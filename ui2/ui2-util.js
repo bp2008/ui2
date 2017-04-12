@@ -284,6 +284,7 @@ function ExecJSON(args, callbackSuccess, callbackFail, synchronous)
 	$.ajax({
 		type: 'POST',
 		url: remoteBaseURL + "json",
+		contentType: "text/plain",
 		data: JSON.stringify(args),
 		dataType: "json",
 		async: !synchronous,

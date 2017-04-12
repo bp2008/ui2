@@ -252,6 +252,7 @@
 			$.ajax({
 				type: 'POST',
 				url: "json",
+				contentType: "text/plain",
 				data: JSON.stringify(args),
 				dataType: "json",
 				success: function (data)
