@@ -3327,6 +3327,66 @@ var Base64 = {
 	}, _utf8_decode: function (b) { var d = "", c = 0, a; for (c1 = c2 = 0; c < b.length;)a = b.charCodeAt(c), 128 > a ? (d += String.fromCharCode(a), c++) : 191 < a && 224 > a ? (c2 = b.charCodeAt(c + 1), d += String.fromCharCode((a & 31) << 6 | c2 & 63), c += 2) : (c2 = b.charCodeAt(c + 1), c3 = b.charCodeAt(c + 2), d += String.fromCharCode((a & 15) << 12 | (c2 & 63) << 6 | c3 & 63), c += 3); return d }
 };
 ///////////////////////////////////////////////////////////////
+// Fix Stored Logins //////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+function ConvertStoredLoginAsNecessary()
+{
+	if (settings.ui2_adminrememberme == "1" && settings.ui2_adminusername != "" && settings.ui2_adminpassword != "" && settings.bi_username == "" && settings.bi_password == "")
+	{
+		settings.bi_rememberMe = "1";
+		settings.bi_username = Base64.encode(SimpleTextGibberize(settings.ui2_adminusername));
+		settings.bi_password = Base64.encode(SimpleTextGibberize(settings.ui2_adminpassword));
+	}
+
+	settings.ui2_adminrememberme = "";
+	settings.ui2_adminusername = "";
+	settings.ui2_adminpassword = "";
+
+	var saveServerList = false;
+	var serverList = GetServerList();
+	for (var i = 0; i < serverList.length; i++)
+	{
+		var server = serverList[i];
+		if (UnbreakServerCredentials(server))
+			saveServerList = true;
+	}
+	if (saveServerList)
+		SaveServerList();
+}
+function UnbreakServerCredentials(server)
+{
+	var originalUser = server.user;
+	var originalPass = server.pass;
+	if (server.user == "" && server.pass == "")
+	{
+	}
+	else if (StringIsGibberized(server.user) || StringIsGibberized(server.pass))
+	{
+		server.user = Base64.encode(SimpleTextGibberize(server.user));
+		server.pass = Base64.encode(SimpleTextGibberize(server.pass));
+	}
+	else
+	{
+		var iterations = 0;
+		var maxIterations = 50;
+		while (iterations++ < maxIterations && (StringIsGibberized(Base64.decode(server.user)) || StringIsGibberized(Base64.decode(server.pass))))
+		{
+			server.user = SimpleTextGibberize(Base64.decode(server.user));
+			server.pass = SimpleTextGibberize(Base64.decode(server.pass));
+		}
+	}
+	return originalUser != server.user || originalPass != server.pass;
+}
+function StringIsGibberized(str)
+{
+	for (var i = 0; i < str.length; i++)
+	{
+		if (str.charCodeAt(i) > 255)
+			return true;
+	}
+	return false;
+}
+///////////////////////////////////////////////////////////////
 // Misc ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 function isCanvasSupported()

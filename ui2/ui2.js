@@ -410,10 +410,6 @@ var defaultSettings =
 			, value: "0"
 		}
 		, {
-			key: "ui2_storedLoginConverted"
-			, value: ""
-		}
-		, {
 			key: "bi_username"
 			, value: ""
 		}
@@ -1512,36 +1508,8 @@ $(function ()
 	makeUnselectable($("#layouttop, #layoutleft, #layoutdivider, #layoutbody"));
 
 	// Convert stored login settings from old format to new format shared by other pages
-	if (settings.ui2_storedLoginConverted != "1")
-	{
-		settings.ui2_storedLoginConverted = "1";
-		if (settings.ui2_adminrememberme == "1")
-		{
-			settings.bi_rememberMe = "1";
-			settings.bi_username = Base64.encode(SimpleTextGibberize(settings.ui2_adminusername));
-			settings.bi_password = Base64.encode(SimpleTextGibberize(settings.ui2_adminpassword));
-		}
-		else
-		{
-			settings.bi_rememberMe = "0";
-			settings.bi_username = "";
-			settings.bi_password = "";
-		}
+	ConvertStoredLoginAsNecessary();
 
-		settings.ui2_adminrememberme = "";
-		settings.ui2_adminusername = "";
-		settings.ui2_adminpassword = "";
-
-		// Convert all saved servers
-		var serverList = GetServerList();
-		for (var i = 0; i < serverList.length; i++)
-		{
-			var server = serverList[i];
-			server.user = Base64.encode(SimpleTextGibberize(server.user));
-			server.pass = Base64.encode(SimpleTextGibberize(server.pass));
-		}
-		SaveServerList();
-	}
 	// Use stored login
 	if (settings.bi_rememberMe == "1")
 	{
