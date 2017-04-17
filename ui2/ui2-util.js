@@ -2798,7 +2798,7 @@ function CheckForUpdates(manuallyTriggered)
 	showMessageIfNoUpdateAvailable = manuallyTriggered;
 	var timeMs = new Date().getTime();
 	settings.ui2_lastUpdateCheck = timeMs;
-	$.getScript("http://www.ipcamtalk.com/bp08/ui2_version.js?nocache=" + timeMs)
+	$.getScript("https://ipcamtalk.com/bp08/ui2_version.js?nocache=" + timeMs)
 		.fail(function (jqxhr, settings, exception)
 		{
 			showMessageIfNoUpdateAvailable = false;
