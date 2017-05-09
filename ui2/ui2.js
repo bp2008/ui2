@@ -2896,6 +2896,7 @@ var currentPtz = "0";
 var currentPtzCamId = "";
 var unsafePtzActionQueued = null;
 var unsafePtzActionInProgress = false;
+var currentPtzData = null;
 
 window.onbeforeunload = function ()
 {
@@ -2975,7 +2976,7 @@ function EnablePTZButtons()
 	$(".ptzpreset").each(function (idx, ele)
 	{
 		var elePresetNum = $(ele).attr("presetnum");
-		$(ele).html('<span id="presetSpan' + elePresetNum + '">' + elePresetNum + '</span><img id="presetThumb' + elePresetNum + '" src="about:blank" alt="' + elePresetNum + '" title="' + elePresetNum + '" class="presetThumb" style="display:none" />');
+		$(ele).html('<span id="presetSpan' + elePresetNum + '">' + elePresetNum + '</span><img id="presetThumb' + elePresetNum + '" src="about:blank" alt="' + elePresetNum + '" class="presetThumb" style="display:none" />');
 		$(ele).click(function ()
 		{
 			var ptzCmd = 100 + parseInt(ele.getAttribute("presetnum"));
@@ -2992,22 +2993,34 @@ function EnablePTZButtons()
 		$(ele).mouseenter(function (e)
 		{
 			var elePresetNum = $(ele).attr("presetnum");
+
+			var thumb = $("#presetBigThumb");
+			thumb.remove();
+			$("body").append('<div id="presetBigThumb"><img alt="" /></div>');
+			thumb = $("#presetBigThumb");
+
+			var desc = null;
+			if (currentPtzData && currentPtzData.cameraId == currentlyLoadingImage.id && currentPtzData.presets && currentPtzData.presets.length > elePresetNum - 1)
+				desc = currentPtzData.presets[elePresetNum - 1];
+			if (desc == null || desc == "")
+				desc = "Preset " + (idx + 1);
+
+			var $desc = $('<div class="presetDescription"></div>');
+			$desc.text(desc);
+			thumb.prepend($desc);
+
 			var imgData = settings.getItem("ui2_preset_" + currentlyLoadingImage.id + "_" + elePresetNum);
 			if (imgData != null && imgData.length > 0)
 			{
-				var thumb = $("#presetBigThumb");
-				if (thumb.length == 0)
-				{
-					$("body").append('<img id="presetBigThumb" alt="" />');
-					thumb = $("#presetBigThumb");
-				}
-				thumb.attr("src", imgData);
-
-				var thisOffset = $(this).offset();
-				thumb.css("left", thisOffset.left + "px");
-				thumb.css("top", (thisOffset.top + ($(this).height() * 3)) + "px");
-				thumb.show();
+				var $img = $('<img alt="" />');
+				$img.attr("src", imgData);
+				thumb.append($img);
 			}
+
+			var thisOffset = $(this).offset();
+			thumb.css("left", thisOffset.left + "px");
+			thumb.css("top", (thisOffset.top + ($(this).height() * 3)) + "px");
+			thumb.show();
 		});
 		$(ele).mouseleave(function (e)
 		{
@@ -3021,7 +3034,7 @@ function LoadPtzPresetThumbs()
 	$(".ptzpreset").each(function (idx, ele)
 	{
 		var elePresetNum = $(ele).attr("presetnum");
-		$(ele).html('<span id="presetSpan' + elePresetNum + '">' + elePresetNum + '</span><img id="presetThumb' + elePresetNum + '" src="about:blank" alt="' + elePresetNum + '" title="Preset ' + elePresetNum + '" class="presetThumb" style="display:none" />');
+		$(ele).html('<span id="presetSpan' + elePresetNum + '">' + elePresetNum + '</span><img id="presetThumb' + elePresetNum + '" src="about:blank" alt="' + elePresetNum + '" class="presetThumb" style="display:none" />');
 		var imgData = settings.getItem("ui2_preset_" + currentlyLoadingImage.id + "_" + elePresetNum);
 		if (imgData != null && imgData.length > 0)
 		{
@@ -3030,6 +3043,7 @@ function LoadPtzPresetThumbs()
 			$("#presetSpan" + elePresetNum).hide();
 		}
 	});
+	LoadPTZPresetDescriptions(currentlyLoadingImage.id);
 }
 function PTZ_set_preset(cameraId, presetNumber)
 {
@@ -3128,6 +3142,24 @@ function UpdatePresetImage(cameraId, presetNumber)
 		}, function (message)
 		{
 			showErrorToast("Failed to save preset image. " + message, 10000);
+		});
+}
+function LoadPTZPresetDescriptions(cameraId)
+{
+	// Sample Response: {"result":"success","session":"xxx","data":{"brightness":-1,"contrast":-1,"presetnum":1,"powermode":-1,"irmode":-1,"talksamplerate":8000,"presets":["Zoom Out","Zoom Mid","Zoom In","Autofocus","Preset 5","Preset 6","Preset 7","Preset 8","Preset 9","Preset 10","Preset 11","Preset 12","Preset 13","Preset 14","Preset 15"]}}
+	if (currentPtzData && currentPtzData.cameraId == cameraId)
+		return;
+	ExecJSON({ cmd: "ptz", camera: cameraId }, function (response)
+	{
+		if (currentlyLoadingCamera.optionValue == cameraId)
+		{
+			currentPtzData = response.data;
+			currentPtzData.cameraId = cameraId;
+		}
+	}, function ()
+		{
+			if (currentlyLoadingCamera.optionValue == cameraId)
+				showWarningToast("Unable to load PTZ metadata for camera: " + cameraId);
 		});
 }
 ///////////////////////////////////////////////////////////////
@@ -3784,8 +3816,8 @@ function ShowLogDialog()
 	CloseLogDialog();
 	modal_systemlogdialog = $('<div id="systemlogdialog"><div class="syslogheader">'
 		+ '<div class="systemlogtitle">' + $("#system_name").text()
-		+ ' System Log <img id="systemlog_refresh_btn" src="ui2/refresh48.png" class="btn24" alt="Refresh" onclick="GetLog()"></div>'
-		+ '</div>'
+		+ ' System Log <img id="systemlog_refresh_btn" src="ui2/refresh48.png" class="btn24" alt="Refresh" onclick="GetLog()">'
+		+ '</div></div>'
 		+ '<div id="systemlogcontent"></div></div>'
 	).modal({ removeElementOnClose: true });
 }
@@ -5351,7 +5383,7 @@ function PopulateScheduleSelector()
 		}
 		else
 		{
-			box.append('<div style="max-width:180px">The global schedule must first be enabled in Blue Iris.</div>');
+			box.append('<div style="max-width:180px">The global schedule must first be configured in Blue Iris.</div>');
 		}
 	}
 	else
