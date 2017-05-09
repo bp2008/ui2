@@ -267,6 +267,7 @@ function unregisterAllOnAppearDisappear()
 ///////////////////////////////////////////////////////////////
 // JSON ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
+var execJsonCounter = 0;
 function ExecJSON(args, callbackSuccess, callbackFail, synchronous)
 {
 	if (isLoggingOut && args.cmd != "logout")
@@ -281,6 +282,8 @@ function ExecJSON(args, callbackSuccess, callbackFail, synchronous)
 		else
 			args.session = oldSession;
 	}
+	var eventArgs = { id: execJsonCounter++, args: args };
+	UI2_CustomEvent.Invoke("ExecJSON_Start", eventArgs);
 	$.ajax({
 		type: 'POST',
 		url: remoteBaseURL + "json",
@@ -290,6 +293,8 @@ function ExecJSON(args, callbackSuccess, callbackFail, synchronous)
 		async: !synchronous,
 		success: function (data)
 		{
+			eventArgs.data = data;
+			UI2_CustomEvent.Invoke("ExecJSON_Success", eventArgs);
 			if (isLogin)
 				$.cookie("session", oldSession, { path: "/" });
 			else if (!isUsingRemoteServer && typeof data.session != "undefined" && data.session != $.cookie("session"))
@@ -299,6 +304,7 @@ function ExecJSON(args, callbackSuccess, callbackFail, synchronous)
 		},
 		error: function (jqXHR, textStatus, errorThrown)
 		{
+			UI2_CustomEvent.Invoke("ExecJSON_Fail", eventArgs);
 			if (callbackFail)
 				callbackFail(jqXHR, textStatus, errorThrown);
 		}
@@ -3796,11 +3802,11 @@ var UI2_CustomEvent =
 				this.customEventRegistry[eventName] = new Array();
 			this.customEventRegistry[eventName].push(eventHandler);
 		},
-		Invoke: function (eventName)
+		Invoke: function (eventName, args)
 		{
 			if (typeof this.customEventRegistry[eventName] != "undefined")
 				for (var i = 0; i < this.customEventRegistry[eventName].length; i++)
-					this.customEventRegistry[eventName][i]();
+					this.customEventRegistry[eventName][i](args);
 		}
 	};
 ///////////////////////////////////////////////////////////////
