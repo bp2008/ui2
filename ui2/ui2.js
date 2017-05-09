@@ -2984,11 +2984,21 @@ function EnablePTZButtons()
 		});
 		$(ele).longpress(function ()
 		{
-			var presetNum = parseInt(ele.getAttribute("presetnum"));
-			if (confirm("You are about to assign preset " + presetNum))
+			if (!isAdministratorSession)
 			{
-				PTZ_set_preset(currentlyLoadingImage.id, presetNum);
+				openLoginDialog();
+				return;
 			}
+			var presetNum = parseInt(elePresetNum);
+			var $question = $('<div style="margin-bottom:20px;width:300px;">' + CleanUpGroupName(currentlyLoadingCamera.optionDisplay) + '<br/><br/>Set Preset ' + presetNum
+				+ ' now?<br/><br/>Description:<br/></div>');
+			var $descInput = $('<input type="text" />');
+			$question.append($descInput);
+			$descInput.val(self.GetPresetDescription(presetNum));
+			AskYesNo($question, function ()
+			{
+				PTZ_set_preset(presetNum, $descInput.val());
+			});
 		});
 		$(ele).mouseenter(function (e)
 		{
@@ -2999,14 +3009,8 @@ function EnablePTZButtons()
 			$("body").append('<div id="presetBigThumb"><img alt="" /></div>');
 			thumb = $("#presetBigThumb");
 
-			var desc = null;
-			if (currentPtzData && currentPtzData.cameraId == currentlyLoadingImage.id && currentPtzData.presets && currentPtzData.presets.length > elePresetNum - 1)
-				desc = currentPtzData.presets[elePresetNum - 1];
-			if (desc == null || desc == "")
-				desc = "Preset " + (idx + 1);
-
 			var $desc = $('<div class="presetDescription"></div>');
-			$desc.text(desc);
+			$desc.text(GetPresetDescription(elePresetNum));
 			thumb.prepend($desc);
 
 			var imgData = settings.getItem("ui2_preset_" + currentlyLoadingImage.id + "_" + elePresetNum);
@@ -3045,13 +3049,22 @@ function LoadPtzPresetThumbs()
 	});
 	LoadPTZPresetDescriptions(currentlyLoadingImage.id);
 }
-function PTZ_set_preset(cameraId, presetNumber)
+function PTZ_set_preset(presetNumber, description)
 {
-	var args = { cmd: "ptz", camera: cameraId, button: (100 + presetNumber), description: "Preset " + presetNumber };
+	if (!currentlyLoadingImage.ptz)
+	{
+		showErrorToast("Current camera is not PTZ");
+		return;
+	}
+	var cameraId = currentlyLoadingImage.id;
+	if (description == null || description == "")
+		description = "Preset " + presetNumber;
+	var args = { cmd: "ptz", camera: cameraId, button: (100 + presetNumber), description: description };
 	ExecJSON(args, function (response)
 	{
 		if (response && typeof response.result != "undefined" && response.result == "success")
 		{
+			RememberPresetDescription(cameraId, presetNumber, description);
 			showSuccessToast("Preset " + presetNumber + " set successfully.");
 			UpdatePresetImage(cameraId, presetNumber);
 		}
@@ -3146,7 +3159,6 @@ function UpdatePresetImage(cameraId, presetNumber)
 }
 function LoadPTZPresetDescriptions(cameraId)
 {
-	// Sample Response: {"result":"success","session":"xxx","data":{"brightness":-1,"contrast":-1,"presetnum":1,"powermode":-1,"irmode":-1,"talksamplerate":8000,"presets":["Zoom Out","Zoom Mid","Zoom In","Autofocus","Preset 5","Preset 6","Preset 7","Preset 8","Preset 9","Preset 10","Preset 11","Preset 12","Preset 13","Preset 14","Preset 15"]}}
 	if (currentPtzData && currentPtzData.cameraId == cameraId)
 		return;
 	ExecJSON({ cmd: "ptz", camera: cameraId }, function (response)
@@ -3161,6 +3173,39 @@ function LoadPTZPresetDescriptions(cameraId)
 			if (currentlyLoadingCamera.optionValue == cameraId)
 				showWarningToast("Unable to load PTZ metadata for camera: " + cameraId);
 		});
+}
+function GetPresetDescription(presetNum, asAnnotation)
+{
+	presetNum = parseInt(presetNum);
+	if (presetNum < 0 || presetNum > 20)
+		return asAnnotation ? "" : ("Preset " + presetNum);
+	var desc = null;
+	if (currentPtzData && currentPtzData.cameraId == currentlyLoadingImage.id && currentPtzData.presets && currentPtzData.presets.length > presetNum - 1)
+		desc = currentPtzData.presets[presetNum - 1];
+	if (desc == null || desc == "")
+		desc = "Preset " + presetNum;
+	if (asAnnotation)
+	{
+		if (desc.match(/^Preset [0-9]+$/i) == null)
+			desc = ' (' + desc + ')';
+		else
+			desc = '';
+	}
+	return desc;
+}
+function RememberPresetDescription(cameraId, presetNum, description)
+{
+	presetNum = parseInt(presetNum);
+	if (presetNum < 0 || presetNum > 20)
+		return;
+	if (currentPtzData && currentPtzData.cameraId == cameraId)
+	{
+		if (!currentPtzData.presets)
+			currentPtzData.presets = [];
+		while (currentPtzData.presets.length < presetNum)
+			currentPtzData.presets.push('Preset' + (currentPtzData.presets.length + 1));
+		currentPtzData.presets[presetNum - 1] = description;
+	}
 }
 ///////////////////////////////////////////////////////////////
 // Get / Set Camera Config ////////////////////////////////////
