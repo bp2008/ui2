@@ -1030,7 +1030,7 @@ function ImgClick(event)
 	if (!currentlyLoadingImage.isLive || hasOnlyOneCamera)
 		return;
 	var camData = GetCameraUnderMousePointer(event);
-	if (camData != null)
+	if (camData != null && !CameraIsCycle(camData))
 	{
 		ImgClick_Camera(camData);
 	}
@@ -1216,6 +1216,10 @@ function CameraIsGroup(cameraObj)
 function CameraIsGroupOrCycle(cameraObj)
 {
 	return cameraObj.group || cameraObj.optionValue.startsWith("@");
+}
+function CameraIsCycle(cameraObj)
+{
+	return cameraObj.optionValue.startsWith("@");
 }
 function CameraIsGroupOrCamera(cameraObj)
 {
