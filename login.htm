@@ -5,7 +5,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>Blue Iris Login</title>
 	<script type="text/javascript">
-		var login_version = "4";
+		var login_version = "5";
+		var bi_version = "%%VERSION%%";
 	</script>
 	<script type="text/javascript">
 		window.onerror = function (msg, url, line, charIdx)
@@ -15,8 +16,11 @@
 				var versionStr = "unknown";
 				if (typeof login_version != "undefined")
 					versionStr = login_version;
+				var biVersionStr = "unknown";
+				if (typeof bi_version != "undefined")
+					biVersionStr = bi_version;
 				url = url.replace(/\/\/.*?\//, '//censored_hostname/');
-				alert("An unexpected error has occurred in Blue Iris Login (version " + versionStr + ").\n\nIf you wish to report the error, please SCREENSHOT the browser now.\n\n" + msg + "\nURL: " + url + "\nLine: " + line + "\nChar: " + charIdx);
+				alert("An unexpected error has occurred in Blue Iris Login (version " + versionStr + " / " + biVersionStr + ").\n\nIf you wish to report the error, please SCREENSHOT the browser now.\n\n" + msg + "\nURL: " + url + "\nLine: " + line + "\nChar: " + charIdx);
 			}
 			catch (ex)
 			{
@@ -24,8 +28,8 @@
 			}
 		};
 	</script>
-	<script src="applet/loginScripts.js?v=4" type="text/javascript"></script>
-	<link href="applet/loginStyles.css?v=4" rel="stylesheet" type="text/css">
+	<script src="applet/loginScripts.js?v=5_%%VERSION%%" type="text/javascript"></script>
+	<link href="applet/loginStyles.css?v=5_%%VERSION%%" rel="stylesheet" type="text/css">
 	<script type="text/javascript">
 		var autologin_timeout_1 = null;
 		var autologin_timeout_2 = null;
@@ -35,7 +39,8 @@
 		{
 			if (typeof window.JSON == 'undefined')
 			{
-				alert("Your browser is too old to use the Blue Iris web interface with secure authentication.");
+				$("#login").text("Your web browser is too old to use the Blue Iris web interface properly.\n\nTo proceed with this browser, disable the \"Secure only\" requirement within Blue Iris's web server settings.");
+				$("#login").css("color", "#EEEEEE").css("margin", "8px");
 				return;
 			}
 			if (UrlParameters.Get("autologin") == "0")
@@ -151,7 +156,7 @@
 					}
 					else
 					{
-						HandleError(response.data.reason);
+						HandleError(response.data ? response.data.reason : "Login failed but Blue Iris did not provide a reason.");
 					}
 				},
 					function (jqXHR, textStatus, errorThrown)
@@ -200,14 +205,14 @@
 		}
 		function GetPersistedValue(key)
 		{
-			if (typeof Storage !== "undefined")
+			if (typeof Storage !== "undefined" && localStorage)
 				return localStorage.getItem(key);
 			else
 				return $.cookie(key);
 		}
 		function SetPersistedValue(key, value)
 		{
-			if (typeof Storage !== "undefined")
+			if (typeof Storage !== "undefined" && localStorage)
 				return localStorage.setItem(key, value);
 			else
 				return $.cookie(key, value, { expires: 365 });
@@ -275,8 +280,8 @@
 <body>
 	<div id="login">
 		<h1>%%SYSNAME%%</h1>
-		<input id="txtUn" type="text" class="text" placeholder="Username" />
-		<input id="txtPw" type="password" class="text" placeholder="Password" onkeypress="return pwKeypress(this,event)" />
+		<input id="txtUn" type="text" class="text" placeholder="Username" autocapitalize="off" autocorrect="off" />
+		<input id="txtPw" type="password" class="text" placeholder="Password" onkeypress="return pwKeypress(this,event)" autocapitalize="off" autocorrect="off" />
 		<div class="checkboxWrapper">
 			<input id="cbLoginAutomatically" type="checkbox" class="checkbox" onchange="cbLoginAutomaticallyClicked()" /><label for="cbLoginAutomatically" id="lblLoginAutomatically"><span class="ui"></span>Log in automatically:</label>
 		</div>
