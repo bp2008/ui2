@@ -12,7 +12,7 @@ https://ipcamtalk.com/threads/i-made-a-better-remote-live-view-page.93/
 ## Installation instructions
 
 1. Download from the discussion thread above, where the latest release is linked.
-   * Alternatively (e.g. if ipcamtalk is down), download a copy of this repository from GitHub.
+   * Alternatively (e.g. if ipcamtalk is down), download it from [the releases page here on github](https://github.com/bp2008/ui2/releases).
 2. Extract the files to the "www" folder located where BlueIris.exe resides.
 3. Load the "ui2.htm" page.
    * http://localhost/ui2.htm - You will probably need to modify the URL to point at your Blue Iris machine.
