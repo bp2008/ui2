@@ -35,14 +35,13 @@ function EnableDraggableDivider()
 		});
 	$("#layoutdivider").on("mousedown touchstart", function (e)
 	{
+		mouseCoordFixer.fix(e);
 		ShowLayoutDivider();
 		if (e.which <= 1)
 		{
 			var thisTime = new Date().getTime();
 			if (thisTime < lastDividerMouseDownTime + doubleClickTime)
 				lastDoubleMouseDownStarted = lastDividerMouseDownTime;
-			if (typeof e.pageX == "undefined")
-				e.pageX = e.originalEvent.touches[0].pageX;
 			lastDividerMouseDownTime = thisTime;
 			dividerOffsetX = e.pageX - $("#layoutdivider").offset().left;
 			isDraggingDivider = true;
@@ -64,12 +63,11 @@ function EnableDraggableDivider()
 	});
 	$(document).on("mousemove touchmove", function (e)
 	{
+		mouseCoordFixer.fix(e);
 		if (layoutDividerHideTimeout != null)
 			clearTimeout(layoutDividerHideTimeout);
 		if (isDraggingDivider)
 		{
-			if (typeof e.pageX == "undefined")
-				e.pageX = e.originalEvent.touches[0].pageX;
 			var newWidth = (e.pageX - dividerOffsetX);
 			if (newWidth < 0)
 				newWidth = 0;
@@ -768,6 +766,7 @@ $(function ()
 	});
 	$('#layoutbody,#zoomhint').mousedown(function (e)
 	{
+		mouseCoordFixer.fix(e);
 		if (e.which == 1)
 		{
 			mouseX = e.pageX;
@@ -779,6 +778,7 @@ $(function ()
 	});
 	$(document).mouseup(function (e)
 	{
+		mouseCoordFixer.fix(e);
 		if (e.which == 1)
 		{
 			if (camImgClickState.mouseDown)
@@ -799,6 +799,7 @@ $(function ()
 	});
 	$('#layoutbody').mouseleave(function (e)
 	{
+		mouseCoordFixer.fix(e);
 		camImgClickState.mouseDown = false;
 		// The purpose of this commented code was to prevent mouse drag actions from taking effect once the pointer left the browser, 
 		// but as of my latest tests, no modern browser has a problem with mouse dragging that continues outside the browser window.
@@ -815,6 +816,7 @@ $(function ()
 	});
 	$(document).mouseleave(function (e)
 	{
+		mouseCoordFixer.fix(e);
 		camImgClickState.mouseDown = false;
 		imageIsDragging = false;
 		isDraggingSeekbar = false;
@@ -822,10 +824,7 @@ $(function ()
 	});
 	$(document).on("mousemove touchmove", function (e)
 	{
-		if (typeof e.pageX == "undefined")
-			e.pageX = e.originalEvent.touches[0].pageX;
-		if (typeof e.pageY == "undefined")
-			e.pageY = e.originalEvent.touches[0].pageY;
+		mouseCoordFixer.fix(e);
 
 		if (camImgClickState.mouseDown)
 		{
@@ -868,6 +867,7 @@ function RegisterCamImgClickHandler()
 {
 	$('#layoutbody').mousedown(function (e)
 	{
+		mouseCoordFixer.fix(e);
 		camImgClickState.mouseDown = true;
 		camImgClickState.mouseX = e.pageX;
 		camImgClickState.mouseY = e.pageY;
@@ -921,13 +921,9 @@ $(function ()
 {
 	$("#playback_seekbar").on("mousedown touchstart", function (e)
 	{
+		mouseCoordFixer.fix(e);
 		if (e.which <= 1 && !currentlyLoadingImage.isLive && settings.ui2_clipPlaybackSeekBarEnabled == "1")
 		{
-			if (typeof e.pageX == "undefined")
-			{
-				e.pageX = e.originalEvent.touches[0].pageX;
-				e.pageY = e.originalEvent.touches[0].pageY;
-			}
 			var thisTime = new Date().getTime();
 			if (thisTime < lastSeekBarMouseDownStarted + doubleClickTime
 				&& Math.abs(e.pageX - lastSeekBarMouseDown.X) < 20
@@ -946,6 +942,7 @@ $(function ()
 	});
 	$(document).on("mouseup touchend touchcancel", function (e)
 	{
+		mouseCoordFixer.fix(e);
 		setMousePosVars(e);
 		HandleSeekbarMouseMove();
 		isDraggingSeekbar = false;
@@ -955,18 +952,6 @@ $(function ()
 });
 function setMousePosVars(e)
 {
-	if (typeof e.pageX == "undefined" || typeof e.pageY == "undefined")
-	{
-		if (e.originalEvent.touches.length == 0)
-			return;
-		else
-		{
-			e.pageX = e.originalEvent.touches[0].pageX;
-			e.pageY = e.originalEvent.touches[0].pageY;
-		}
-	}
-	if (typeof e.pageX == "undefined" || typeof e.pageY == "undefined")
-		return;
 	mouseX = e.pageX;
 	mouseY = e.pageY;
 }
@@ -3399,6 +3384,36 @@ function StringIsGibberized(str)
 ///////////////////////////////////////////////////////////////
 // Misc ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
+var mouseCoordFixer =
+	{
+		last: {
+			x: 0, y: 0
+		}
+		, fix: function (e)
+		{
+			if (e.alreadyMouseCoordFixed)
+				return;
+			e.alreadyMouseCoordFixed = true;
+			if (typeof e.pageX == "undefined")
+			{
+				if (e.originalEvent && e.originalEvent.touches && e.originalEvent.touches.length > 0)
+				{
+					mouseCoordFixer.last.x = e.pageX = e.originalEvent.touches[0].pageX + $(window).scrollLeft();
+					mouseCoordFixer.last.y = e.pageY = e.originalEvent.touches[0].pageY + $(window).scrollTop();
+				}
+				else
+				{
+					e.pageX = mouseCoordFixer.last.x;
+					e.pageY = mouseCoordFixer.last.y;
+				}
+			}
+			else
+			{
+				mouseCoordFixer.last.x = e.pageX = e.pageX + $(window).scrollLeft();
+				mouseCoordFixer.last.y = e.pageY = e.pageY + $(window).scrollTop();
+			}
+		}
+	};
 function isCanvasSupported()
 {
 	var elem = document.createElement('canvas');
