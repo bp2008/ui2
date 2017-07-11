@@ -1533,6 +1533,17 @@ $(function ()
 
 	HandleMidLoadUrlParameters();
 
+	var visProp = getHiddenProp();
+	if (visProp)
+	{
+		var evtname = visProp.replace(/[H|h]idden/, '') + 'visibilitychange';
+		document.addEventListener(evtname, function ()
+		{
+			// Called when page visibility changes.
+			VisibilityChanged(!documentIsHidden());
+		});
+	}
+
 	$(window).resize(resized);
 	resized();
 
@@ -2002,7 +2013,7 @@ function ProfileChanged()
 	showInfoToast("Your profile has changed.<br/>Reinitializing shortly...", 5000);
 	if (profileChangedTimeout != null)
 		clearTimeout(profileChangedTimeout);
-	profileChangedTimeout = setTimeout(function () { firstCameraListLoaded = false; LoadCameraList(); KickstartMjpegStream(); }, 5000);
+	profileChangedTimeout = setTimeout(function () { LoadCameraList(); KickstartMjpegStream(); }, 5000);
 }
 function UpdateProfileStatus()
 {
@@ -4120,6 +4131,15 @@ var currentLoadedImageActualWidth = 1;
 
 var isCamimgElementBusy = false;
 //var lastImageWasJpegDiff = false;
+
+var uiIsVisible = !documentIsHidden();
+
+function VisibilityChanged(visible)
+{
+	uiIsVisible = visible;
+	h264Player.VisibilityChanged(visible);
+}
+
 function StartRefresh()
 {
 	UpdateSelectedLiveCameraFields();
@@ -4243,6 +4263,8 @@ function GetNewImage()
 		timeLastClipFrame = timeValue;
 		var speedMultiplier = GetClipPlaybackSpeedMultiplier();
 		timePassed *= speedMultiplier;
+		if (!uiIsVisible)
+			timePassed = 0;
 		clipPlaybackPosition += timePassed;
 		if (seekingEnabled)
 		{
@@ -4393,6 +4415,7 @@ function GetNewImage()
 			&& !CouldBenefitFromWidthChange(widthToRequest))
 			|| hlsPlayerIsBlockingJpegRefresh()
 			|| JpegSuppressionDialogIsOpen()
+			|| !uiIsVisible
 		)
 			GetNewImageAfterTimeout();
 		else
@@ -4980,6 +5003,16 @@ function H264Player()
 		{
 			enableH264 = false;
 			SetupH264Player();
+		}
+	}
+	this.VisibilityChanged = function (visible)
+	{
+		if (enableH264 && myDecoder != null)
+		{
+			if (visible)
+				myDecoder.OpenStream(currentlyLoadingImage.id);
+			else
+				myDecoder.StopStreaming();
 		}
 	}
 	this.isEnabled = function ()

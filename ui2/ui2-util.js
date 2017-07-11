@@ -2938,8 +2938,8 @@ var fps =
 // Host Redirection ///////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 // all ajax page loads, JSON API requests, and camera imagery requests are sent to remoteBaseURL.
-// Keep remoteBaseURL == "/" to target the local server as normal.
-var remoteBaseURL = "/";
+// Keep remoteBaseURL == "" to target the local server as normal.
+var remoteBaseURL = "";
 var remoteServerName = "";
 var remoteServerUser = "";
 var remoteServerPass = "";
@@ -2951,7 +2951,7 @@ function SetRemoteServer(serverName)
 	if (serverName == "")
 	{
 		remoteServerName = remoteServerUser = remoteServerPass = "";
-		remoteBaseURL = "/";
+		remoteBaseURL = "";
 		isUsingRemoteServer = false;
 	}
 	else
@@ -3794,6 +3794,30 @@ jQuery.cachedScript = function (url, options)
 	options = $.extend(options || {}, { dataType: "script", cache: true, url: url });
 	return jQuery.ajax(options);
 };
+function getHiddenProp()
+{
+	var prefixes = ['webkit', 'moz', 'ms', 'o'];
+
+	// if 'hidden' is natively supported just return it
+	if ('hidden' in document) return 'hidden';
+
+	// otherwise loop over all the known prefixes until we find one
+	for (var i = 0; i < prefixes.length; i++)
+	{
+		if ((prefixes[i] + 'Hidden') in document)
+			return prefixes[i] + 'Hidden';
+	}
+
+	// otherwise it's not supported
+	return null;
+}
+function documentIsHidden()
+{
+	var prop = getHiddenProp();
+	if (!prop) return false;
+
+	return document[prop];
+}
 ///////////////////////////////////////////////////////////////
 // Custom Events //////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
