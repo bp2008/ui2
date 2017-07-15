@@ -2554,7 +2554,7 @@ function HandleHotkeyChange(e)
 	else if (charCode == 219) keyName = "["; // open bracket
 	else if (charCode == 220) keyName = "\\"; // back slash
 	else if (charCode == 221) keyName = "]"; // close bracket
-	else if (charCode == 222) keyName = "'"; // single quote
+	else if (charCode == 222) keyName = "apostrophe (')"; // single quote
 
 	textBox.val(modifiers + keyName);
 
