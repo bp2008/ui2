@@ -3992,9 +3992,9 @@ function SessionLogin(user, pass)
 			lastLoginResponse = response;
 			if (typeof response.result != "undefined" && response.result == "fail")
 			{
-				var reason = response.data && response.data.reason ? " " + response.data.reason : "";
+				var reason = GetLoginFailReason(response);
 				if (isUsingRemoteServer || isLoggingInWithCredentials)
-					showErrorToast('Failed to log in.' + reason, 3000);
+					showErrorToast('Failed to log in. ' + reason, 3000);
 				if (isUsingRemoteServer)
 					HandleRemoteServerFailedToLogin();
 				else
@@ -4036,6 +4036,13 @@ function SessionLogin(user, pass)
 				LoadCameraList();
 			}
 		});
+}
+function GetLoginFailReason(response)
+{
+	if (response)
+		return response.data && response.data.reason ? response.data.reason : JSON.stringify(response);
+	else
+		return "null response";
 }
 function HandleSuccessfulLogin(user, wasJustCheckingSessionStatus)
 {
