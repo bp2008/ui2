@@ -302,6 +302,12 @@ function ExecJSON(args, callbackSuccess, callbackFail, synchronous)
 		},
 		error: function (jqXHR, textStatus, errorThrown)
 		{
+			if (jqXHR && jqXHR.status == 404 && remoteBaseURL == "")
+			{
+				remoteBaseURL = "/";
+				ExecJSON(args, callbackSuccess, callbackFail, synchronous);
+				return;
+			}
 			UI2_CustomEvent.Invoke("ExecJSON_Fail", eventArgs);
 			if (callbackFail)
 				callbackFail(jqXHR, textStatus, errorThrown);
