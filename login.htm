@@ -75,7 +75,13 @@
 			$("#login").show();
 			if (typeof window.JSON == 'undefined')
 			{
-				$("#login").text("Your web browser is too old to use the Blue Iris web interface properly.\n\nTo proceed with this browser, disable the \"Secure only\" requirement within Blue Iris's web server settings.");
+				var message = 'Your web browser is too old to use the Blue Iris web interface properly';
+				if (BrowserIsIE())
+					message += ', or your browser is using an <a href="https://www.google.com/search?q=internet+explorer+compatibility+mode+disable" target="_blank">unsupported compatibility mode</a>.';
+				else
+					message += '.';
+				message += '<br><br>Try <a href="https://www.google.com/chrome" target="_blank">Google Chrome</a>.<br><br>To attempt to proceed with this browser, disable the \"Secure only\" requirement within Blue Iris\'s web server settings.';
+				$("#login").html(message);
 				$("#login").css("color", "#EEEEEE").css("margin", "8px");
 				return;
 			}
@@ -316,6 +322,13 @@
 			$("#status").html(html);
 			$("#status").css("color", color);
 			resized();
+		}
+		var _browser_is_ie = -1;
+		function BrowserIsIE()
+		{
+			if (_browser_is_ie == -1)
+				_browser_is_ie = /MSIE \d|Trident.*rv:/.test(navigator.userAgent) ? 1 : 0;
+			return _browser_is_ie == 1;
 		}
 	</script>
 </head>
