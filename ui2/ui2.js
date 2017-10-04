@@ -5024,7 +5024,7 @@ function H264Player()
 	}
 	this.isEnabled = function ()
 	{
-		return myDecoder != null || broadwayScriptState == "1";
+		return myDecoder != null || broadwayScriptState > 0;
 	}
 	this.Load = function (cameraId)
 	{
