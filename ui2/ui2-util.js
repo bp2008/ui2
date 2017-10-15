@@ -2424,9 +2424,8 @@ function EnableHotkeys()
 	{
 		var charCode = e.which ? e.which : event.keyCode;
 		if (currentlyDownKeys[charCode])
-			return;
-		currentlyDownKeys[charCode] = true;
-		var charCode = e.which ? e.which : event.keyCode;
+			return false;
+		currentlyDownKeys[charCode] = [];
 		var retVal = true;
 		if (settings.ui2_enableHotkeys == "1" && $(".ui2modal").length == 0)
 		{
@@ -2438,12 +2437,13 @@ function EnableHotkeys()
 					var parts = settings[s.key].split("|");
 					if (parts.length == 5)
 					{
-						var charCode = e.which ? e.which : event.keyCode
 						if ((e.ctrlKey ? "1" : "0") == parts[0]
 							&& (e.altKey ? "1" : "0") == parts[1]
 							&& (e.shiftKey ? "1" : "0") == parts[2]
 							&& (charCode == parts[3]))
 						{
+							if (typeof s.hotkeyUpAction == "function")
+								currentlyDownKeys[charCode].push(s.hotkeyUpAction);
 							s.hotkeyAction();
 							retVal = false;
 						}
@@ -2457,26 +2457,15 @@ function EnableHotkeys()
 	$(document).keyup(function (e)
 	{
 		var charCode = e.which ? e.which : event.keyCode;
+		var hotkeyUpActions = currentlyDownKeys[charCode];
 		currentlyDownKeys[charCode] = false;
 		var retVal = true;
-		if (settings.ui2_enableHotkeys == "1" && $(".ui2modal").length == 0)
+		if (hotkeyUpActions)
 		{
-			for (var i = 0; i < defaultSettings.length; i++)
+			for (var i = 0; i < hotkeyUpActions.length; i++)
 			{
-				var s = defaultSettings[i];
-				if (s.hotkey && typeof s.hotkeyUpAction == "function")
-				{
-					var parts = settings[s.key].split("|");
-					if (parts.length == 5)
-					{
-						var charCode = e.which ? e.which : event.keyCode
-						if (charCode == parts[3])
-						{
-							s.hotkeyUpAction();
-							retVal = false;
-						}
-					}
-				}
+				hotkeyUpActions[i]();
+				retVal = false;
 			}
 		}
 		if (!retVal)
@@ -2486,7 +2475,7 @@ function EnableHotkeys()
 function HandleHotkeyChange(e)
 {
 	var textBox = $(e.target);
-	var charCode = e.which ? e.which : event.keyCode
+	var charCode = e.which ? e.which : event.keyCode;
 	var modifiers = "";
 
 	if (e.ctrlKey)
