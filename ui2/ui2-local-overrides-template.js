@@ -106,6 +106,7 @@ OverrideDefaultSetting("ui2_clipsShowSnapshots", 				"1",			true,		false,		0);
 OverrideDefaultSetting("ui2_snapshotPlaybackTimeSeconds", 			2,			true,		false,		0);
 OverrideDefaultSetting("ui2_timeBetweenCameraListUpdates", 			5000,			true,		false,		0);
 OverrideDefaultSetting("ui2_sessionTimeout", 					0,			true,		false,		0);
+OverrideDefaultSetting("ui2_clipListUseFullCameraName", 			"0",			true,		false,		0);
 OverrideDefaultSetting("ui2_enableHotkeys", 					"1",			true,		false,		0);
 OverrideDefaultSetting("ui2_hotkey_togglefullscreen",				"1|0|0|192|tilde (~`)", true, 		false, 		0);
 OverrideDefaultSetting("ui2_hotkey_togglesidebar",				"0|0|0|192|tilde (~`)", true, 		false, 		0);

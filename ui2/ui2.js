@@ -589,6 +589,13 @@ var defaultSettings =
 			, category: "UI Behavior"
 		}
 		, {
+			key: "ui2_clipListUseFullCameraName"
+			, value: "0"
+			, inputType: "checkbox"
+			, preLabel: "Clip list uses full camera names:"
+			, hint: "(Default: unchecked) If checked, full camera names appear in the clip/alert lists. Requires list refresh to take full effect."
+			, category: "UI Behavior"
+		}, {
 			key: "ui2_enableHotkeys"
 			, value: "1"
 			, inputType: "checkbox"
@@ -2342,7 +2349,7 @@ function ClipOnAppear(clipData)
 			dateStr = GetDateStr(clipData.date);
 		$("#clipsbody").append('<div id="c' + clipData.clipId + '" class="cliptile" style="top:' + clipData.y + 'px" msec="' + clipData.msec + '"><div class="cliptilehelper inlineblock"></div>'
 			+ '<div class="clipimghelper inlineblock"><img id="t' + clipData.clipId + '" src="ui2/LoadingSmall.png" /></div>' // /thumbs/' + clip.path + '
-			+ '<div class="clipdesc inlineblock"><span style="background-color: #' + clipData.colorHex + ';color: #' + clipData.nameColorHex + ';" class="clip_cam_shortid">' + clipData.camera + '</span><br/><span class="timestamp">' + dateStr + '</span><br/>' + clipData.roughLength + '</div>'
+			+ '<div class="clipdesc inlineblock"><span style="background-color: #' + clipData.colorHex + ';color: #' + clipData.nameColorHex + ';" class="clip_cam_shortid">' + (settings.ui2_clipListUseFullCameraName == "1" ? GetCameraName(clipData.camera) : clipData.camera) + '</span><br/><span class="timestamp">' + dateStr + '</span><br/>' + clipData.roughLength + '</div>'
 			// + '<div id="extra' + clipId + '" class="clipextrathumbs inlineblock"></div>'
 			+ '</div>');
 		var img = document.getElementById("t" + clipData.clipId);
