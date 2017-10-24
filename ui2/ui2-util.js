@@ -3828,6 +3828,52 @@ function documentIsHidden()
 
 	return document[prop];
 }
+function GetServerDateIfConfigured(date)
+{
+	if (settings.ui2_useServerTimeZone == "1")
+		return GetServerDate(date);
+	return date;
+}
+function GetReverseServerDateIfConfigured(date)
+{
+	if (settings.ui2_useServerTimeZone == "1")
+		return GetReverseServerDate(date);
+	return date;
+}
+function GetServerDate(date)
+{
+	/// <summary>
+	/// Given a date in local time, returns a new date with the time adjusted so that it reads as if the browser shared a time zone with the server.
+	/// </summary>
+	return new Date(date.getTime() + GetServerTimeOffset());
+}
+function GetReverseServerDate(date)
+{
+	/// <summary>
+	/// For use when GetServerDate() caused the date to be offset in the wrong direction for the desired effect.
+	/// Due to complex time zone handling, sometimes you need to subtract the time zone offset instead of add it.  This method does that.
+	/// </summary>
+	return new Date(date.getTime() - GetServerTimeOffset());
+}
+function GetServerTimeOffsetIfConfigured()
+{
+	if (settings.ui2_useServerTimeZone == "1")
+		return GetServerTimeOffset();
+	return 0;
+}
+function GetServerTimeOffset()
+{
+	/// <summary>
+	/// Returns the difference in milliseconds between this browser's time zone and the server's time zone such that this code would print the date and time that it currently is on the server:
+	///
+	/// var utcMs = new Date().getTime();
+	/// var serverTime = new Date(utcMs + GetServerTimeOffset());
+	/// console.log(serverTime.toString());
+	/// </summary>
+	var localOffsetMs = new Date().getTimezoneOffset() * 60000;
+	var serverOffsetMs = serverTimeZoneOffsetMs;
+	return localOffsetMs - serverOffsetMs;
+}
 ///////////////////////////////////////////////////////////////
 // Custom Events //////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////

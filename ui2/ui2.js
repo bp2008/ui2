@@ -1040,6 +1040,14 @@ var defaultSettings =
 			, category: "Hotkeys"
 		}
 		, {
+			key: "ui2_useServerTimeZone"
+			, value: "1"
+			, preLabel: "Use Server's Time Zone"
+			, inputType: "checkbox"
+			, hint: 'If checked, dates shown in the UI will use the time zone of the Blue Iris server.'
+			, category: "Misc"
+		}
+		, {
 			key: "ui2_clipListDateUseLocale"
 			, value: "0"
 			, preLabel: "Locale format clip timestamps"
@@ -1904,6 +1912,7 @@ var currentProfileNames = null;
 var currentlySelectedSchedule = "";
 var globalScheduleEnabled = false;
 var lastStatusUpdateFailed = false;
+var serverTimeZoneOffsetMs = 0;
 function LoadStatus(profileNum, stoplightState, schedule)
 {
 	if (statusUpdateTimeout != null)
@@ -1983,6 +1992,7 @@ function LoadStatus(profileNum, stoplightState, schedule)
 			$("#diskinfo").text(response.data.clips);
 			UpdateProfileStatus();
 			UpdateScheduleStatus();
+			serverTimeZoneOffsetMs = parseInt(parseFloat(response.data.tzone) * -60000);
 		}
 		statusLoaded = true;
 		SetLoadedStatus("#loadingServerStatus");
@@ -2214,6 +2224,7 @@ function LoadClips(listName, cameraId, myDateStart, myDateEnd, isContinuationOfP
 				clipData.path = clip.path;
 				clipData.flags = clip.flags;
 				clipData.date = new Date(clip.date * 1000);
+				clipData.displayDate = GetServerDateIfConfigured(clipData.date);
 				clipData.colorHex = BlueIrisColorToCssColor(clip.color);
 				clipData.nameColorHex = GetReadableTextColorHexForBackgroundColorHex(clipData.colorHex);
 				clipData.fileSize = GetFileSize(clip.filesize);
@@ -2293,7 +2304,7 @@ function LoadClips(listName, cameraId, myDateStart, myDateEnd, isContinuationOfP
 		//		}
 	}, function (jqXHR, textStatus, errorThrown)
 		{
-			var tryAgain = ++failedClipListLoads < 5
+			var tryAgain = !isContinuationOfPreviousLoad && ++failedClipListLoads < 5
 			showErrorToast("Failed to load " + (listName == "cliplist" ? "clip list" : "alert list") + ".<br/>Will " + (tryAgain ? "" : "NOT ") + "try again.<br/>" + textStatus + "<br/>" + errorThrown, 5000);
 
 			try
@@ -2344,9 +2355,9 @@ function ClipOnAppear(clipData)
 	{
 		var dateStr;
 		if (settings.ui2_clipListDateUseLocale == "1")
-			dateStr = clipData.date.toLocaleString();
+			dateStr = clipData.displayDate.toLocaleString();
 		else
-			dateStr = GetDateStr(clipData.date);
+			dateStr = GetDateStr(clipData.displayDate);
 		$("#clipsbody").append('<div id="c' + clipData.clipId + '" class="cliptile" style="top:' + clipData.y + 'px" msec="' + clipData.msec + '"><div class="cliptilehelper inlineblock"></div>'
 			+ '<div class="clipimghelper inlineblock"><img id="t' + clipData.clipId + '" src="ui2/LoadingSmall.png" /></div>' // /thumbs/' + clip.path + '
 			+ '<div class="clipdesc inlineblock"><span style="background-color: #' + clipData.colorHex + ';color: #' + clipData.nameColorHex + ';" class="clip_cam_shortid">' + (settings.ui2_clipListUseFullCameraName == "1" ? GetCameraName(clipData.camera) : clipData.camera) + '</span><br/><span class="timestamp">' + dateStr + '</span><br/>' + clipData.roughLength + '</div>'
@@ -2360,7 +2371,7 @@ function ClipOnAppear(clipData)
 		$clip.attr("path", clipData.path);
 		$clip.attr("size", clipData.fileSize);
 		$clip.attr("camid", clipData.camera);
-		$clip.attr("date", clipData.date.getTime());
+		$clip.attr("date", clipData.displayDate.getTime());
 
 		registerClipListContextMenu($clip);
 
@@ -2617,7 +2628,7 @@ function DatePickerSelect(dateCustom, dateYMD, noonDateObj, ele, datePickerNum)
 {
 	if (suppressDatePickerCallbacks)
 		return;
-	var startOfDay = new Date(noonDateObj.getFullYear(), noonDateObj.getMonth(), noonDateObj.getDate());
+	var startOfDay = GetReverseServerDateIfConfigured(new Date(noonDateObj.getFullYear(), noonDateObj.getMonth(), noonDateObj.getDate()));
 	SeparateClipDateLabelIntoTwo();
 	if (datePickerNum == 1)
 	{
@@ -3842,7 +3853,7 @@ function GetLog()
 		for (var i = 0; i < response.data.length; i++)
 		{
 			var data = response.data[i];
-			var date = new Date(data.date * 1000)
+			var date = GetServerDateIfConfigured(new Date(data.date * 1000));
 			var dateStr;
 			if (settings.ui2_clipListDateUseLocale == "1")
 				dateStr = date.toLocaleString();
@@ -4863,7 +4874,7 @@ function saveSnapshot()
 		var camId = currentlyLoadingImage.id;
 		if (camId.startsWith("@") || camId.startsWith("+"))
 			camId = camId.substr(1);
-		var date = GetDateStr(new Date(currentImageDateMs), true);
+		var date = GetDateStr(new Date(currentImageDateMs + GetServerTimeOffsetIfConfigured()), true);
 		date = date.replace(/\//g, '-').replace(/:/g, '.');
 		var fileName = camId + " " + date + ".jpg";
 		$("#save_snapshot_btn").attr("download", fileName);
