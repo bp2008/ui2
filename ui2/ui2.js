@@ -4039,6 +4039,7 @@ function SessionLogin(user, pass)
 				{
 					loginLoaded = true;
 					SetLoadedStatus("#loadingLogin");
+					LoadStatus();
 					LoadCameraList();
 				}
 			});
@@ -4051,6 +4052,7 @@ function SessionLogin(user, pass)
 			{
 				loginLoaded = true;
 				SetLoadedStatus("#loadingLogin");
+				LoadStatus();
 				LoadCameraList();
 			}
 		});
