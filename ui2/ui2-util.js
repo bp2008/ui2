@@ -2422,31 +2422,30 @@ function EnableHotkeys()
 {
 	$(document).keydown(function (e)
 	{
+		if (settings.ui2_enableHotkeys != "1" || $("body").children(".ui2modal").length != 0)
+			return;
 		var charCode = e.which ? e.which : event.keyCode;
 		if (currentlyDownKeys[charCode])
 			return false;
 		currentlyDownKeys[charCode] = [];
 		var retVal = true;
-		if (settings.ui2_enableHotkeys == "1" && $(".ui2modal").length == 0)
+		for (var i = 0; i < defaultSettings.length; i++)
 		{
-			for (var i = 0; i < defaultSettings.length; i++)
+			var s = defaultSettings[i];
+			if (s.hotkey)
 			{
-				var s = defaultSettings[i];
-				if (s.hotkey)
+				var parts = settings[s.key].split("|");
+				if (parts.length == 5)
 				{
-					var parts = settings[s.key].split("|");
-					if (parts.length == 5)
+					if ((e.ctrlKey ? "1" : "0") == parts[0]
+						&& (e.altKey ? "1" : "0") == parts[1]
+						&& (e.shiftKey ? "1" : "0") == parts[2]
+						&& (charCode == parts[3]))
 					{
-						if ((e.ctrlKey ? "1" : "0") == parts[0]
-							&& (e.altKey ? "1" : "0") == parts[1]
-							&& (e.shiftKey ? "1" : "0") == parts[2]
-							&& (charCode == parts[3]))
-						{
-							if (typeof s.hotkeyUpAction == "function")
-								currentlyDownKeys[charCode].push(s.hotkeyUpAction);
-							s.hotkeyAction();
-							retVal = false;
-						}
+						if (typeof s.hotkeyUpAction == "function")
+							currentlyDownKeys[charCode].push(s.hotkeyUpAction);
+						s.hotkeyAction();
+						retVal = false;
 					}
 				}
 			}

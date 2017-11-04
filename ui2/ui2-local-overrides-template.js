@@ -148,6 +148,7 @@ OverrideDefaultSetting("ui2_hotkey_ptzPreset17", 				"1|0|0|55|7",		true,		false
 OverrideDefaultSetting("ui2_hotkey_ptzPreset18", 				"1|0|0|56|8",		true,		false,		0);
 OverrideDefaultSetting("ui2_hotkey_ptzPreset19", 				"1|0|0|57|9",		true,		false,		0);
 OverrideDefaultSetting("ui2_hotkey_ptzPreset20", 				"1|0|0|48|0",		true,		false,		0);
+OverrideDefaultSetting("ui2_useServerTimeZone", 				"1",			true,		false,		0);
 OverrideDefaultSetting("ui2_clipListDateUseLocale", 				"0",			true,		false,		0);
 OverrideDefaultSetting("ui2_doAutoUpdateCheck", 				"1",			true,		false,		0);
 OverrideDefaultSetting("ui2_enableCanvasDrawing", 				"0",			true,		false,		0);
