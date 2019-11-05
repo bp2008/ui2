@@ -5,7 +5,13 @@ A custom web interface for Blue Iris Video Security Software.
 
 # OBSOLETE
 
-UI2 development ceased at the end of 2017.  UI2 has been superseded by [UI3](https://github.com/bp2008/ui3), which is included directly in Blue Iris since April 20, 2018.  [UI3](https://github.com/bp2008/ui3) offers drastically improved video and audio playback (among other improvements), so I recommend to use it instead.
+**UI2 development ceased at the end of 2017.  UI2 has been superseded by [UI3](https://github.com/bp2008/ui3), which is included directly in Blue Iris since April 20, 2018.  [UI3](https://github.com/bp2008/ui3) offers drastically improved video and audio playback (among other improvements), so I recommend to use it instead.**
+
+
+
+
+
+
 
 ## Discuss on ipcamtalk
 This project has a discussion thread on the **ipcamtalk** forum, here:
